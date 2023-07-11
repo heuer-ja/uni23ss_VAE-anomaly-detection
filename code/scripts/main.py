@@ -3,6 +3,7 @@ import torch
 
 from dataset import DatasetKDD
 from model import VAE_Tabular
+from torch.utils.data import TensorDataset 
 
 
 def main():
@@ -10,16 +11,15 @@ def main():
 
     # LOAD DATA (full; no split)
     data = DatasetKDD(is_debug=True)
-    df_X = data.get_data()
+    dataset:TensorDataset = data.get_data()
     
-    row_df = df_X.iloc[:1, :]
-    row: torch.Tensor = torch.from_numpy(np.array(row_df))
+    x1, y1 = dataset[0]
 
     # MODEL
     model = VAE_Tabular()
-    encoded, z_mean, z_log_var, decoded  = model.forward(x=row)
+    encoded, z_mean, z_log_var, decoded  = model.forward(x1)
 
-    print(row)
+    print(x1)
     print(encoded)
     print(z_mean)
     print(z_log_var)

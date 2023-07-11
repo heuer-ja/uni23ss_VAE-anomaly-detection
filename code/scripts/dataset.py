@@ -1,11 +1,14 @@
+import torch
 import pandas as pd
+
 from abc import ABC, abstractclassmethod
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
+from torch.utils.data import TensorDataset 
 
 class IDataset(ABC):
 
     @abstractclassmethod
-    def get_data(self) -> pd.DataFrame:
+    def get_data(self) -> TensorDataset:
         # load data
 
         # get correct shape 
@@ -39,19 +42,31 @@ class DatasetKDD(IDataset):
         self.is_debug = is_debug
         pass 
 
-    def get_data(self) -> pd.DataFrame:
-        df = self.load()
+    def get_data(self) -> TensorDataset:
+        df:pd.DataFrame = self.load()
         df = self.fix_dtypes(df)
         df = self.normalize(df)
         df = self.one_hot_encoding(df)
 
+
         # split into X,y 
-        X,y = df.iloc[:, 2:], df.iloc[:, :2]
+        X = df.iloc[:, 2:]
+        y = df.iloc[:, :1] # only use ['Attack Type'], not ['label']
+
+        # encode labels
+        label_encoder = LabelEncoder()
+        y_encoded = label_encoder.fit_transform(y.values.ravel())
+
+        # to Dataset (DataLoader expects Dataset)
+        X_tensor = torch.tensor(X.values, dtype=torch.float32)
+        y_tensor  = torch.tensor(y_encoded, dtype=torch.float32)
 
         # floatify
-        X = X.astype(float)
+        X_tensor = X_tensor.float()
+        y_tensor = y_tensor.float()
 
-        return X
+        dataset:TensorDataset = TensorDataset(X_tensor, y_tensor)
+        return dataset
      
     def load(self) -> pd.DataFrame:
         '''load local data from directory and setup a dataframe'''
