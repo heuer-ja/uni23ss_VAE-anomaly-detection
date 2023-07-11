@@ -10,9 +10,9 @@ def main():
 
     # LOAD DATA (full; no split)
     data = DatasetKDD(is_debug=True)
-    df = data.get_data()
+    df_X = data.get_data()
     
-    row_df = df.iloc[:1, 2:].astype(float)
+    row_df = df_X.iloc[:1, :]
     row: torch.Tensor = torch.from_numpy(np.array(row_df))
 
     # MODEL

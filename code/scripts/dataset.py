@@ -44,7 +44,14 @@ class DatasetKDD(IDataset):
         df = self.fix_dtypes(df)
         df = self.normalize(df)
         df = self.one_hot_encoding(df)
-        return df
+
+        # split into X,y 
+        X,y = df.iloc[:, 2:], df.iloc[:, :2]
+
+        # floatify
+        X = X.astype(float)
+
+        return X
      
     def load(self) -> pd.DataFrame:
         '''load local data from directory and setup a dataframe'''
