@@ -98,6 +98,17 @@ class DatasetKDD(IDataset):
         df = df.loc[:, cols]
         return df 
 
+    def fix_dtypes(self, df:pd.DataFrame)-> pd.DataFrame:
+        ''' Some columns are categorical (0,1) 
+            but due to the import they are considered to be numerical
+            '''
+        cols_categorical = ['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
+        df[cols_categorical] = df[cols_categorical].astype(str)
+        print(f'''(✓) Fixed dtypes (int -> str) 
+        with len =\t\t{len(df.select_dtypes(exclude=[float, int]).columns )} 
+        with columns =\t{df.select_dtypes(exclude=[float, int]).columns}''') if self.is_debug else ''
+        return df
+
     def normalize(self, df:pd.DataFrame)-> pd.DataFrame:
         '''standardization of numerical values (mean = 0, std. dev. = 1)'''
 
@@ -123,20 +134,6 @@ class DatasetKDD(IDataset):
         print('(✓) one-hot encoded categorical columns') if self.is_debug else ''
 
         return df 
-
-    def fix_dtypes(self, df:pd.DataFrame)-> pd.DataFrame:
-        ''' Some columns are categorical (0,1) 
-            but due to the import they are considered to be numerical
-         '''
-        cols_categorical = ['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
-        df[cols_categorical] = df[cols_categorical].astype(str)
-        print(f'''(✓) Fixed dtypes (int -> str) 
-        with len =\t\t{len(df.select_dtypes(exclude=[float, int]).columns )} 
-        with columns =\t{df.select_dtypes(exclude=[float, int]).columns}''') if self.is_debug else ''
-        return df
-
-
-
 
 
 def main() -> None:
