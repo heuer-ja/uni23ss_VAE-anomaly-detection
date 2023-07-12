@@ -1,9 +1,11 @@
 import torch
 import pandas as pd
+import  numpy as np
 
 from abc import ABC, abstractclassmethod
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from torch.utils.data import TensorDataset 
+from typing import Tuple
 
 class IDataset(ABC):
 
@@ -35,6 +37,13 @@ class IDataset(ABC):
     def one_hot_encoding(self)-> pd.DataFrame:
         pass 
 
+    @abstractclassmethod
+    def get_X_Yencoded(self, df:pd.DataFrame)-> Tuple[np.ndarray,np.ndarray]:
+        pass
+
+    @abstractclassmethod
+    def to_tensor_dataset(self, X:np.ndarray, y:np.ndarray) -> TensorDataset:
+        pass
         
 class DatasetKDD(IDataset):
     def __init__(self, is_debug=True) -> None:
@@ -43,29 +52,22 @@ class DatasetKDD(IDataset):
         pass 
 
     def get_data(self) -> TensorDataset:
-        df:pd.DataFrame = self.load()
+        df:pd.DataFrame
+        X:np.ndarray
+        y_encoded:np.ndarray
+        dataset:TensorDataset
+
+        # Load & pre-process data (dataframe)
+        df = self.load()
         df = self.fix_dtypes(df)
         df = self.normalize(df)
         df = self.one_hot_encoding(df)
 
+        # split into X, y(encoded) 
+        X, y_encoded = self.get_X_Yencoded(df)
 
-        # split into X,y 
-        X = df.iloc[:, 2:]
-        y = df.iloc[:, :1] # only use ['Attack Type'], not ['label']
-
-        # encode labels
-        label_encoder = LabelEncoder()
-        y_encoded = label_encoder.fit_transform(y.values.ravel())
-
-        # to Dataset (DataLoader expects Dataset)
-        X_tensor = torch.tensor(X.values, dtype=torch.float32)
-        y_tensor  = torch.tensor(y_encoded, dtype=torch.float32)
-
-        # floatify
-        X_tensor = X_tensor.float()
-        y_tensor = y_tensor.float()
-
-        dataset:TensorDataset = TensorDataset(X_tensor, y_tensor)
+        # to TesnorDataset (DataLoader expects Dataset)
+        dataset = self.to_tensor_dataset(X, y_encoded)
         return dataset
      
     def load(self) -> pd.DataFrame:
@@ -157,6 +159,38 @@ class DatasetKDD(IDataset):
 
         return df 
 
+    def get_X_Yencoded(self, df:pd.DataFrame)-> Tuple[np.ndarray,np.ndarray]:
+        ''' splits data into X and y
+            and encodes y
+        '''
+        # split into X,y 
+        X:pd.DataFrame = df.iloc[:, 2:]
+        y:pd.DataFrame = df.iloc[:, :1] # only use ['Attack Type'], not ['label']
+
+        # X to numpy
+        X:np.ndarray = X.values 
+
+        # encode labels
+        label_encoder = LabelEncoder()
+        y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
+
+        return X,y_encoded
+
+    def to_tensor_dataset(self, X:np.ndarray, y:np.ndarray) -> TensorDataset:
+        '''
+        transform X,y to `TensorDataset`, since `DataLoader` expects it for training
+        '''
+
+        # to Dataset (DataLoader expects Dataset)
+        X_tensor:torch.Tensor = torch.tensor(X, dtype=torch.float32)
+        y_tensor:torch.Tensor  = torch.tensor(y, dtype=torch.float32)
+
+        # floatify
+        X_tensor = X_tensor.float()
+        y_tensor = y_tensor.float()
+
+        dataset:TensorDataset = TensorDataset(X_tensor, y_tensor)
+        return dataset
 
 def main() -> None:
     kdd:DatasetKDD = DatasetKDD()

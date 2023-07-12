@@ -13,6 +13,7 @@ def main():
     data = DatasetKDD(is_debug=True)
     dataset:TensorDataset = data.get_data()
     
+    # select one row
     x1, y1 = dataset[0]
 
     # MODEL
