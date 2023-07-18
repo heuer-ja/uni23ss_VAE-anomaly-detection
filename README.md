@@ -5,3 +5,5 @@ Code inspiration:
 
 # Execution
 CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
+
+test online access
