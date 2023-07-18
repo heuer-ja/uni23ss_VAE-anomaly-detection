@@ -15,9 +15,9 @@ class ProbVAEArchitecture:
         ) -> None:
         
         self.encoder:nn.Module = encoder 
-        self.latent_mu:nn.Module = latent_mu,
-        self.latent_sigma:nn.Module = latent_sigma,
-        self.decoder:nn.Module = decoder,
-        self.recon_mu:nn.Module = recon_mu,
-        self.recon_sigma:nn.Module = recon_sigma,
+        self.latent_mu:nn.Module = latent_mu
+        self.latent_sigma:nn.Module = latent_sigma
+        self.decoder:nn.Module = decoder
+        self.recon_mu:nn.Module = recon_mu
+        self.recon_sigma:nn.Module = recon_sigma
         pass
