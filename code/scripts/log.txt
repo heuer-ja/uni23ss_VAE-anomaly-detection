@@ -1,4 +1,4 @@
-PROCESS ID:		3154903
+PROCESS ID:		3155595
 
 DEVICE cuda:1 with 4 workers.
 
@@ -21,31 +21,31 @@ LOADING DATA ...
 (✓) casted X,y to TensorDataset
 (✓) loaded data
 -----------------
-Epoch: 000/003 | Batch 0000/3860 | Loss: 108.0291 | KL: 1.2422 | RecLoss: -106.7869
-Epoch: 000/003 | Batch 0500/3860 | Loss: 102.4060 | KL: 1.2150 | RecLoss: -101.1910
-Epoch: 000/003 | Batch 1000/3860 | Loss: 98.7199 | KL: 1.1942 | RecLoss: -97.5258
-Epoch: 000/003 | Batch 1500/3860 | Loss: 96.6364 | KL: 1.1752 | RecLoss: -95.4612
-Epoch: 000/003 | Batch 2000/3860 | Loss: 95.3262 | KL: 1.1623 | RecLoss: -94.1639
-Epoch: 000/003 | Batch 2500/3860 | Loss: 91.6042 | KL: 1.1489 | RecLoss: -90.4553
-Epoch: 000/003 | Batch 3000/3860 | Loss: 88.7177 | KL: 1.1331 | RecLoss: -87.5845
-Epoch: 000/003 | Batch 3500/3860 | Loss: 89.3008 | KL: 1.1081 | RecLoss: -88.1926
+Epoch: 000/003 | Batch 0000/3860 | Loss: 97.9051 | KL: 1.2783 | RecLoss: -96.6268
+Epoch: 000/003 | Batch 0500/3860 | Loss: 96.2869 | KL: 1.2514 | RecLoss: -95.0355
+Epoch: 000/003 | Batch 1000/3860 | Loss: 93.3396 | KL: 1.2199 | RecLoss: -92.1197
+Epoch: 000/003 | Batch 1500/3860 | Loss: 96.6456 | KL: 1.2035 | RecLoss: -95.4421
+Epoch: 000/003 | Batch 2000/3860 | Loss: 93.9830 | KL: 1.1826 | RecLoss: -92.8004
+Epoch: 000/003 | Batch 2500/3860 | Loss: 95.5447 | KL: 1.1791 | RecLoss: -94.3656
+Epoch: 000/003 | Batch 3000/3860 | Loss: 91.2888 | KL: 1.1604 | RecLoss: -90.1284
+Epoch: 000/003 | Batch 3500/3860 | Loss: 91.6549 | KL: 1.1479 | RecLoss: -90.5070
 Time elapsed: 0.20 min
-Epoch: 001/003 | Batch 0000/3860 | Loss: 86.8549 | KL: 1.0998 | RecLoss: -85.7551
-Epoch: 001/003 | Batch 0500/3860 | Loss: 144.5436 | KL: 1.1350 | RecLoss: -143.4086
-Epoch: 001/003 | Batch 1000/3860 | Loss: 86.8612 | KL: 1.0742 | RecLoss: -85.7870
-Epoch: 001/003 | Batch 1500/3860 | Loss: 82.7780 | KL: 1.0577 | RecLoss: -81.7203
-Epoch: 001/003 | Batch 2000/3860 | Loss: 92.2589 | KL: 1.0490 | RecLoss: -91.2099
-Epoch: 001/003 | Batch 2500/3860 | Loss: 81.0024 | KL: 1.0219 | RecLoss: -79.9805
-Epoch: 001/003 | Batch 3000/3860 | Loss: 92.5066 | KL: 1.0171 | RecLoss: -91.4895
-Epoch: 001/003 | Batch 3500/3860 | Loss: 80.7893 | KL: 1.0001 | RecLoss: -79.7892
+Epoch: 001/003 | Batch 0000/3860 | Loss: 89.1682 | KL: 1.1517 | RecLoss: -88.0165
+Epoch: 001/003 | Batch 0500/3860 | Loss: 86.0927 | KL: 1.1386 | RecLoss: -84.9540
+Epoch: 001/003 | Batch 1000/3860 | Loss: 99.1121 | KL: 1.1365 | RecLoss: -97.9756
+Epoch: 001/003 | Batch 1500/3860 | Loss: 86.5912 | KL: 1.1166 | RecLoss: -85.4746
+Epoch: 001/003 | Batch 2000/3860 | Loss: 81.9144 | KL: 1.1005 | RecLoss: -80.8139
+Epoch: 001/003 | Batch 2500/3860 | Loss: 100.1616 | KL: 1.0941 | RecLoss: -99.0674
+Epoch: 001/003 | Batch 3000/3860 | Loss: 155.2716 | KL: 1.1059 | RecLoss: -154.1657
+Epoch: 001/003 | Batch 3500/3860 | Loss: 72.6194 | KL: 1.0794 | RecLoss: -71.5400
 Time elapsed: 0.40 min
-Epoch: 002/003 | Batch 0000/3860 | Loss: 74.1176 | KL: 0.9887 | RecLoss: -73.1290
-Epoch: 002/003 | Batch 0500/3860 | Loss: 71.0183 | KL: 0.9711 | RecLoss: -70.0472
-Epoch: 002/003 | Batch 1000/3860 | Loss: 67.3262 | KL: 0.9654 | RecLoss: -66.3608
-Epoch: 002/003 | Batch 1500/3860 | Loss: 72.6941 | KL: 0.9677 | RecLoss: -71.7264
-Epoch: 002/003 | Batch 2000/3860 | Loss: 62.7681 | KL: 0.9448 | RecLoss: -61.8233
-Epoch: 002/003 | Batch 2500/3860 | Loss: 59.7923 | KL: 0.9290 | RecLoss: -58.8633
-Epoch: 002/003 | Batch 3000/3860 | Loss: 59.5103 | KL: 0.9200 | RecLoss: -58.5903
-Epoch: 002/003 | Batch 3500/3860 | Loss: 56.2268 | KL: 0.9141 | RecLoss: -55.3127
+Epoch: 002/003 | Batch 0000/3860 | Loss: 94.6542 | KL: 1.1128 | RecLoss: -93.5414
+Epoch: 002/003 | Batch 0500/3860 | Loss: 79.9927 | KL: 1.0742 | RecLoss: -78.9185
+Epoch: 002/003 | Batch 1000/3860 | Loss: 80.2858 | KL: 1.0670 | RecLoss: -79.2188
+Epoch: 002/003 | Batch 1500/3860 | Loss: 72.9418 | KL: 1.0726 | RecLoss: -71.8693
+Epoch: 002/003 | Batch 2000/3860 | Loss: 69.3450 | KL: 1.0655 | RecLoss: -68.2795
+Epoch: 002/003 | Batch 2500/3860 | Loss: 64.2817 | KL: 1.0441 | RecLoss: -63.2376
+Epoch: 002/003 | Batch 3000/3860 | Loss: 70.6689 | KL: 1.0711 | RecLoss: -69.5979
+Epoch: 002/003 | Batch 3500/3860 | Loss: 56.7439 | KL: 1.0650 | RecLoss: -55.6789
 Time elapsed: 0.59 min
 Total Training Time: 0.59 min
