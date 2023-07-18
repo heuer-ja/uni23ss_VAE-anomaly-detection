@@ -1,3 +1,6 @@
+import sys
+sys.dont_write_bytecode = True
+
 import os
 
 import numpy as np 
@@ -11,20 +14,23 @@ from train import train_vae_tabular
 
 def main():
 
-    print(f'PID:\t\t{os.getpid()}')
+    print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
     # Device
     CUDA_DEVICE_NUM = 1
     DEVICE = torch.device(f'cuda:{CUDA_DEVICE_NUM}' if torch.cuda.is_available() else 'cpu')
-    print('Device:', DEVICE)
-
-    # HYPERPARAMETERS
-    LEARNING_RATE = 0.000005
-    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
-    NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
     NUM_WORKERS = 1 if DEVICE == 'cpu' else 4
+    print(f'DEVICE {DEVICE} with {NUM_WORKERS} workers.\n')
 
-
+    # HYPERPARAMETER
+    NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
+    LEARNING_RATE = 0.000005
+    print('''HYPERPARAMETER:
+    \tEpochs:\t{NUM_EPOCHS}
+    \tBatch size:\t{BATCH_SIZE}
+    \tLearning rate:\t{LEARNING_RATE}
+    ''')
 
     # LOAD DATA (full; no split)
     data:DatasetKDD = DatasetKDD(is_debug=True)
@@ -32,8 +38,8 @@ def main():
     loader_train:DataLoader = DataLoader(
         dataset, 
         batch_size=BATCH_SIZE, 
+        num_workers=NUM_WORKERS,
         shuffle=True,
-        num_workers=NUM_WORKERS
     )
 
     # MODEL
