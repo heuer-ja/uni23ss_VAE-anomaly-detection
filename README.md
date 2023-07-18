@@ -7,4 +7,4 @@ Code inspiration:
 CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
 
 test online access
-test 3
+test 4
