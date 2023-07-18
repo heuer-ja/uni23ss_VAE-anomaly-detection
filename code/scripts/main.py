@@ -20,9 +20,9 @@ def main():
 
     # HYPERPARAMETERS
     LEARNING_RATE = 0.000005
-    BATCH_SIZE = 16#128 
-    NUM_EPOCHS = 2#4
-    NUM_WORKERS = 1# 4
+    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
+    NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
+    NUM_WORKERS = 1 if DEVICE == 'cpu' else 4
 
 
 
