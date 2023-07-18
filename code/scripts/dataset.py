@@ -52,6 +52,7 @@ class DatasetKDD(IDataset):
         pass 
 
     def get_data(self) -> TensorDataset:
+        print('LOADING DATA ...') if self.is_debug else ''
         df:pd.DataFrame
         X:np.ndarray
         y_encoded:np.ndarray
@@ -68,6 +69,7 @@ class DatasetKDD(IDataset):
 
         # to TesnorDataset (DataLoader expects Dataset)
         dataset = self.to_tensor_dataset(X, y_encoded)
+        print('(✓) loaded data\n-----------------') if self.is_debug else ''
         return dataset
      
     def load(self) -> pd.DataFrame:
@@ -77,7 +79,7 @@ class DatasetKDD(IDataset):
         ### 1. Load
         df = pd.read_csv('../../data/kddcup.data_10_percent.gz', header=None)
         cols = pd.read_csv('../../data/kddcup.names',header=None)
-        print('(✓) Downloaded labeled data') if self.is_debug else ''
+        print('(✓) downloaded labeled data') if self.is_debug else ''
         
         ### 2. Add column names to DataFrame
         if cols[0][0] == 'back':
@@ -102,7 +104,7 @@ class DatasetKDD(IDataset):
         # FETCH DATA: ATTACK TYPE  (Summarize labels (i. e., attack types))
         ### 1. Download Attack Types 
         df_attack_types = pd.read_csv('../../data/training_attack_types')
-        print('(✓) Loaded attack type data') if self.is_debug else ''
+        print('(✓) loaded attack type data') if self.is_debug else ''
 
         ### 2. Split columns (fetched data contains two features in one column, so split it)
         df_temp = pd.DataFrame(columns=['Attack','Type'])
@@ -128,7 +130,7 @@ class DatasetKDD(IDataset):
             '''
         cols_categorical = ['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
         df[cols_categorical] = df[cols_categorical].astype(str)
-        print(f'''(✓) Fixed dtypes (int -> str) 
+        print(f'''(✓) fixed dtypes (int -> str) 
         with len =\t\t{len(df.select_dtypes(exclude=[float, int]).columns )} 
         with columns =\t{df.select_dtypes(exclude=[float, int]).columns}''') if self.is_debug else ''
         return df
@@ -151,7 +153,7 @@ class DatasetKDD(IDataset):
         ### Remove y-variables for one-hot-encoding
         df_no_ylabel = df.iloc[:, 2::1]
         non_number_cols = df_no_ylabel.select_dtypes(exclude=[float, int]).columns
-        df_encoded = pd.get_dummies(df_no_ylabel, columns=non_number_cols)
+        df_encoded = pd.get_dummies(df_no_ylabel, columns=non_number_cols).astype(float)
 
         ### merge y-variable with one-hot encoded features
         df = pd.concat([df.iloc[:, 0:2:1], df_encoded], axis=1)
@@ -173,6 +175,7 @@ class DatasetKDD(IDataset):
         # encode labels
         label_encoder = LabelEncoder()
         y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
+        print('(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
 
         return X,y_encoded
 
@@ -180,7 +183,6 @@ class DatasetKDD(IDataset):
         '''
         transform X,y to `TensorDataset`, since `DataLoader` expects it for training
         '''
-
         # to Dataset (DataLoader expects Dataset)
         X_tensor:torch.Tensor = torch.tensor(X, dtype=torch.float32)
         y_tensor:torch.Tensor  = torch.tensor(y, dtype=torch.float32)
@@ -190,6 +192,7 @@ class DatasetKDD(IDataset):
         y_tensor = y_tensor.float()
 
         dataset:TensorDataset = TensorDataset(X_tensor, y_tensor)
+        print('(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return dataset
 
 def main() -> None:
