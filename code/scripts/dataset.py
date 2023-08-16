@@ -7,43 +7,56 @@ from sklearn.preprocessing import StandardScaler, LabelEncoder
 from torch.utils.data import TensorDataset 
 from typing import Tuple
 
+import torchvision
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader, TensorDataset
+
 class IDataset(ABC):
 
     @abstractclassmethod
     def get_data(self) -> TensorDataset:
-        # load data
-
-        # get correct shape 
-        #  - naming
-        #  - positioning of columns
-        #  - correct dtypes 
-        #  - remove nans
-
-        # normalization (0,1)
-
-        # one hot encoding 
         pass     
 
     @abstractclassmethod
-    def load(self) -> pd.DataFrame:
+    def load(self):
         pass 
 
     @abstractclassmethod
-    def normalize(self) -> pd.DataFrame:
-        '''standardization of numerical values (mean = 0, std. dev. = 1)'''
-        pass 
-
-    @abstractclassmethod
-    def one_hot_encoding(self)-> pd.DataFrame:
-        pass 
-
-    @abstractclassmethod
-    def get_X_Yencoded(self, df:pd.DataFrame)-> Tuple[np.ndarray,np.ndarray]:
+    def to_tensor_dataset(self) -> TensorDataset:
         pass
 
-    @abstractclassmethod
-    def to_tensor_dataset(self, X:np.ndarray, y:np.ndarray) -> TensorDataset:
-        pass
+
+class DatasetMNIST(IDataset):
+    def __init__(self, is_debug=True) -> None:
+        super().__init__()
+        self.is_debug = is_debug
+        pass 
+
+
+    def get_data(self) -> TensorDataset:
+        dataset = self.load()
+        dataset = self.to_tensor_dataset(dataset)
+        return dataset
+ 
+
+    def load(self):
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
+        ])
+        train_dataset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+        print('(✓) loaded data\n-----------------') if self.is_debug else ''
+        return train_dataset 
+
+    def to_tensor_dataset(self, dataset) -> TensorDataset:
+        train_loader = DataLoader(dataset, batch_size=16, shuffle=True)
+        data_iter = iter(train_loader)
+        images, labels = next(data_iter)
+
+        tensor_dataset:TensorDataset = TensorDataset(images, labels)
+        return tensor_dataset
+
+    
         
 class DatasetKDD(IDataset):
     def __init__(self, is_debug=True) -> None:
