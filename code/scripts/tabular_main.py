@@ -1,4 +1,5 @@
 import sys
+
 sys.dont_write_bytecode = True
 
 import os
@@ -8,9 +9,13 @@ import torch
 from torch.utils.data import TensorDataset , DataLoader
 from torch.optim import Adam
 
-from dataset import DatasetMNIST
-from model import VAE_Tabular
-from train import train_vae_tabular
+
+
+from dataset import DatasetKDD
+from tabular_model import VAE_Tabular
+from tabular_train import train_vae_tabular
+
+
 
 def main():
 
@@ -33,7 +38,7 @@ def main():
     ''')
 
     # LOAD DATA (full; no split)
-    data:DatasetMNIST = DatasetMNIST(is_debug=True)
+    data:DatasetKDD = DatasetKDD(is_debug=True)
     dataset:TensorDataset = data.get_data()
     loader_train:DataLoader = DataLoader(
         dataset, 
@@ -43,12 +48,6 @@ def main():
     )
 
     # MODEL
-    data_iter = iter(loader_train)
-    images, labels = next(data_iter)
-    print(f"Batch of images shape: {images.shape}")
-    print(f"Batch of labels shape: {labels.shape}")
-
-    return 
     model:VAE_Tabular = VAE_Tabular()
     model.to(DEVICE)
 

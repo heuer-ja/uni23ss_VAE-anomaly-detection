@@ -5,11 +5,9 @@ import torch.nn.functional as F
 import torch 
 import torch.nn as nn
 
-from model import VAE_Tabular
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
-
-from torch.distributions import Normal, kl_divergence
+from tabular_model import VAE_Tabular
 
 
 def train_vae_tabular(

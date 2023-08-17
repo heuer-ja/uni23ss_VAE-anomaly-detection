@@ -1,6 +1,6 @@
 import torch.nn as nn 
 
-class ProbVAEArchitecture:
+class ProbabilisticVAEArchitecture:
     '''
     Helper class for defining the architecture of a probabilistic VAE.
     '''

@@ -1,22 +1,18 @@
-from abc import abstractmethod, ABC
-
-import numpy as np 
-
 import torch 
 import torch.nn as nn
 from torch.nn.functional import softplus
 from torch.distributions import Normal, kl_divergence
 
-from pvae_architecture import ProbVAEArchitecture
+from helper_vae_architecture import ProbabilisticVAEArchitecture
 
+    
 
-class VAE(nn.Module, ABC):
-    #=================[ARCHITECTURE]==============
+class VAE_Tabular(nn.Module):
     def __init__(
             self,
-            io_size:int,
-            latent_size:int
-    ) -> None:
+            io_size:int=121,
+            latent_size:int=10
+            ) -> None:
         super().__init__()
         self.io_size = io_size
         self.latent_size = latent_size
@@ -24,7 +20,7 @@ class VAE(nn.Module, ABC):
         self.L = 10 #  Number of samples in the latent space to detect the anomaly.
         self.prior =  Normal(0,1)
         
-        architecture:ProbVAEArchitecture= self.get_architecture()
+        architecture:ProbabilisticVAEArchitecture= self.get_architecture()
         self.encoder:nn.Module =  architecture.encoder
         self.latent_mu:nn.Module = architecture.latent_mu
         self.latent_sigma:nn.Module = architecture.latent_sigma
@@ -32,12 +28,34 @@ class VAE(nn.Module, ABC):
         self.recon_mu:nn.Module = architecture.recon_mu
         self.recon_sigma:nn.Module = architecture.recon_sigma
         return 
-    
-    @abstractmethod
-    def get_architecture(self)  -> ProbVAEArchitecture:
-        pass
 
-    #=================[FORWARD PASS]==============
+    def get_architecture(self)  -> ProbabilisticVAEArchitecture:
+        architecture:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
+            # ENCODER
+            encoder = nn.Sequential(
+                    nn.Linear(self.io_size // 1, self.io_size // 2, dtype=torch.float32),
+                    nn.ReLU(),
+                    nn.Linear(self.io_size // 2, self.io_size // 4, dtype=torch.float32),
+                    nn.ReLU()
+            ),
+            # LATENT SPACE
+            latent_mu     = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
+            latent_sigma  = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
+            # DECODER
+            decoder = nn.Sequential(
+                nn.Linear(self.latent_size, self.io_size // 4, dtype=torch.float32),
+                nn.ReLU(),
+                nn.Linear(self.io_size // 4, self.io_size // 2, dtype=torch.float32),
+                nn.ReLU(),
+            ),
+            # RECONSTRUCTION
+            recon_mu     = nn.Linear(self.io_size // 2, self.io_size // 1, dtype=torch.float32),
+            recon_sigma  = nn.Linear(self.io_size // 2, self.io_size // 1, dtype=torch.float32)
+        )
+        return architecture
+    
+
+  #=================[FORWARD PASS]==============
     def forward(self, x: torch.Tensor) -> dict:
         pred_result = self.predict(x)
         x = x.unsqueeze(0)  # unsqueeze to broadcast input across sample dimension (L)
@@ -71,37 +89,3 @@ class VAE(nn.Module, ABC):
         return dict(
             z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
             recon_mu=recon_mu, recon_sigma=recon_sigma)
-    
-
-class VAE_Tabular(VAE):
-    def __init__(
-            self,
-            io_size:int=121,
-            latent_size:int=10
-            ) -> None:
-        super().__init__(io_size=io_size, latent_size=latent_size)
-
-    def get_architecture(self)  -> ProbVAEArchitecture:
-        architecture:ProbVAEArchitecture = ProbVAEArchitecture(
-            # ENCODER
-            encoder = nn.Sequential(
-                    nn.Linear(self.io_size // 1, self.io_size // 2, dtype=torch.float32),
-                    nn.ReLU(),
-                    nn.Linear(self.io_size // 2, self.io_size // 4, dtype=torch.float32),
-                    nn.ReLU()
-            ),
-            # LATENT SPACE
-            latent_mu     = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
-            latent_sigma  = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
-            # DECODER
-            decoder = nn.Sequential(
-                nn.Linear(self.latent_size, self.io_size // 4, dtype=torch.float32),
-                nn.ReLU(),
-                nn.Linear(self.io_size // 4, self.io_size // 2, dtype=torch.float32),
-                nn.ReLU(),
-            ),
-            # RECONSTRUCTION
-            recon_mu     = nn.Linear(self.io_size // 2, self.io_size // 1, dtype=torch.float32),
-            recon_sigma  = nn.Linear(self.io_size // 2, self.io_size // 1, dtype=torch.float32)
-        )
-        return architecture
