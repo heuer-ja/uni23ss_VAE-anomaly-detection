@@ -44,7 +44,7 @@ class DatasetMNIST(IDataset):
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
-        train_dataset = torchvision.datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+        train_dataset = torchvision.datasets.MNIST(root='../../data', train=True, transform=transform, download=True)
         print('(✓) loaded data\n-----------------') if self.is_debug else ''
         return train_dataset 
 

@@ -8,8 +8,6 @@ from torch.distributions import Normal, kl_divergence
 from helper_vae_architecture import ProbabilisticVAEArchitecture
 
 
-
-
 class VAE_CNN(nn.Module):
     def __init__(
                 self,

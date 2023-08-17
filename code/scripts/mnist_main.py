@@ -1,4 +1,5 @@
 import sys
+
 sys.dont_write_bytecode = True
 
 import os
@@ -6,6 +7,7 @@ import torch
 from torch.utils.data import TensorDataset , DataLoader
 from torch.optim import Adam
 
+from mnist_model import VAE_CNN
 from dataset import DatasetMNIST
 
 
@@ -42,12 +44,11 @@ def main():
 
     # MODEL
     data_iter = iter(loader_train)
-    images, labels = next(data_iter)
-    print(f"Batch of images shape: {images.shape}")
-    print(f"Batch of labels shape: {labels.shape}")
-
-    return 
-    model:VAE_Tabular = VAE_Tabular()
+    X, y = next(data_iter)
+    print(f"Batch of images shape: {X.shape}")
+    print(f"Batch of labels shape: {y.shape}")
+ 
+    model:VAE_CNN = VAE_CNN()
     model.to(DEVICE)
 
     # OPTIMIZER
@@ -57,6 +58,9 @@ def main():
     )
 
     # TRAINING
+    pred = model(X)
+
+    return 
     train_vae_tabular(
         device=DEVICE, 
         model=model, 
