@@ -44,10 +44,11 @@ def main():
     len = X.shape[0]
     img_resolution = (X.shape[2], X.shape[3])
     print(f"Length of dataset {len}")
-    print(f"Batch of images shape: {X.shape}, so img resolution is {img_resolution}={img_resolution[0]*img_resolution[1]}")
     print(f"Batch of labels shape: {y.shape}")
+    print(f"Batch of images shape: {X.shape}")
+    print(f'Img resolution is {img_resolution}={img_resolution[0]*img_resolution[1]}')
+    print('\n')
 
-    return 
     loader_train:DataLoader = DataLoader(
         dataset, 
         batch_size=BATCH_SIZE, 
@@ -57,7 +58,7 @@ def main():
 
     # MODEL
     model:VAE_CNN = VAE_CNN(
-        io_size=(X.shape[1] * X.shape[2])
+        io_size=(img_resolution[0] * img_resolution[1])
     )
     model.to(DEVICE)
 
@@ -68,8 +69,12 @@ def main():
     )
 
     # TEST
-    X = X.to(DEVICE)
-    pred = model(X)
+    X1, _ = next(iter(loader_train))    
+
+    X1 = X1.to(DEVICE)
+    pred = model(X1)
+    print('Done')
+
 
     return 
     # TRAINING
