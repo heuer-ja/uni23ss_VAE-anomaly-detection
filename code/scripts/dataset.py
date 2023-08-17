@@ -35,9 +35,11 @@ class DatasetMNIST(IDataset):
 
     def get_data(self) -> TensorDataset:
         dataset = self.load() 
-        dataset = self.to_tensor_dataset(dataset) 
+        X, y  = self.reshape(dataset)
+        dataset:TensorDataset = self.to_tensor_dataset(X, y) 
+
         return dataset
- 
+    
 
     def load(self):
         transform = transforms.Compose([
@@ -48,8 +50,15 @@ class DatasetMNIST(IDataset):
         print('(✓) loaded data\n-----------------') if self.is_debug else ''
         return train_dataset 
 
-    def to_tensor_dataset(self, dataset) -> TensorDataset:
-        tensor_dataset:TensorDataset = TensorDataset(dataset.data, dataset.targets)
+    def reshape(self, dataset) -> Tuple[np.ndarray,np.ndarray]:
+        y = dataset.targets
+        X = dataset.data
+        X = X.view(-1, 1, 28, 28)  # Reshape to [batch_size, channels, height, width]
+        print('(✓) reshaped X') if self.is_debug else ''
+        return X,y
+    
+    def to_tensor_dataset(self, X:np.ndarray,y:np.ndarray ) -> TensorDataset:
+        tensor_dataset:TensorDataset = TensorDataset(X,y)
         print('(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return tensor_dataset
 
