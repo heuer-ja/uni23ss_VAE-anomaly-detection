@@ -12,7 +12,7 @@ from tabular_model import VAE_Tabular
 
 def train_vae_tabular(
         device:str, 
-        model:VAE_Tabular, 
+        model, 
         num_epochs:int, 
         optimizer:Optimizer, 
         train_loader:DataLoader, 

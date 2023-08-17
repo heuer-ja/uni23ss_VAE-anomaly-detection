@@ -1,0 +1,1 @@
+# write a script that outputs all months 

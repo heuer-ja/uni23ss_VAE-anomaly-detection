@@ -1,5 +1,6 @@
 import sys
 
+
 sys.dont_write_bytecode = True
 
 import os
@@ -9,11 +10,11 @@ from torch.optim import Adam
 
 from mnist_model import VAE_CNN
 from dataset import DatasetMNIST
+from tabular_train import train_vae_tabular
 
 
 
 def main():
-
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
     # Device
@@ -35,6 +36,7 @@ def main():
     # LOAD DATA (full; no split)
     data:DatasetMNIST = DatasetMNIST(is_debug=True)
     dataset:TensorDataset = data.get_data()
+
     loader_train:DataLoader = DataLoader(
         dataset, 
         batch_size=BATCH_SIZE, 
@@ -42,13 +44,15 @@ def main():
         shuffle=True,
     )
 
-    # MODEL
     data_iter = iter(loader_train)
     X, y = next(data_iter)
-    print(f"Batch of images shape: {X.shape}")
+    print(f"Batch of images shape: {X.shape}, so input size is {X.shape[2]}*{X.shape[3]}={X.shape[2]*X.shape[3]}")
     print(f"Batch of labels shape: {y.shape}")
  
-    model:VAE_CNN = VAE_CNN()
+    # MODEL
+    model:VAE_CNN = VAE_CNN(
+        io_size=(X.shape[2] * X.shape[3])
+    )
     model.to(DEVICE)
 
     # OPTIMIZER
@@ -57,10 +61,13 @@ def main():
         lr=LEARNING_RATE,
     )
 
-    # TRAINING
-    pred = model(X)
+    # TEST
+    #X = X.to(DEVICE)
+    #pred = model(X)
 
-    return 
+
+    # TRAINING
+     
     train_vae_tabular(
         device=DEVICE, 
         model=model, 

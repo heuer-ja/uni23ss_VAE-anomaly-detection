@@ -1,20 +1,44 @@
+import os
+import sys
+
+sys.dont_write_bytecode = True
+
 import numpy as np 
 
 import torch 
 import torch.nn as nn
+from torch.utils.data import TensorDataset , DataLoader
+from torch.optim import Adam
 from torch.nn.functional import softplus
 from torch.distributions import Normal, kl_divergence
 
+# own classes
+from dataset import DatasetMNIST
 from helper_vae_architecture import ProbabilisticVAEArchitecture
+from tabular_train import train_vae_tabular
+
 
 
 class VAE_CNN(nn.Module):
     def __init__(
                 self,
-                io_size:int=28*28,
+                io_size:int=784,
                 latent_size:int=10
                 ) -> None:
-        super().__init__(io_size=io_size, latent_size=latent_size)
+        super().__init__()
+        self.io_size = io_size
+        self.latent_size = latent_size
+
+        self.L = 10 #  Number of samples in the latent space to detect the anomaly.
+        self.prior =  Normal(0,1)
+        
+        architecture:ProbabilisticVAEArchitecture= self.get_architecture()
+        self.encoder:nn.Module =  architecture.encoder
+        self.latent_mu:nn.Module = architecture.latent_mu
+        self.latent_sigma:nn.Module = architecture.latent_sigma
+        self.decoder:nn.Module = architecture.decoder
+        self.recon_mu:nn.Module = architecture.recon_mu
+        self.recon_sigma:nn.Module = architecture.recon_sigma
 
     def get_architecture(self)  -> ProbabilisticVAEArchitecture:
         architecture:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
@@ -55,68 +79,41 @@ class VAE_CNN(nn.Module):
     #=================[FORWARD PASS]==============
     def forward(self, x: torch.Tensor) -> dict:
         pred_result = self.predict(x)
-        print('forward 1')
         x = x.unsqueeze(0)  # unsqueeze to broadcast input across sample dimension (L)
-        print('forward 2')
+
+        # LOSS
         log_lik = Normal(pred_result['recon_mu'], pred_result['recon_sigma']).log_prob(x).mean(
             dim=0)  # average over sample dimension
-        print('forward 3')
-
         log_lik = log_lik.mean(dim=0).sum()
-        print('forward 4')
-
         kl = kl_divergence(pred_result['latent_dist'], self.prior).mean(dim=0).sum()
-        print('forward 5')
-
         loss = kl - log_lik
-        print('forward 6')
 
         return dict(loss=loss, kl=kl, recon_loss=log_lik, **pred_result)
      
     def predict(self, x) -> dict:
         batch_size = len(x)
+
         # ENCODING
-        
-        print(np.shape(x))
-        print('predict 1')
         x = self.encoder(x)
-        print(np.shape(x))
-        print('predict 2')
 
-        
-        # LATENT SPACE
-        latent_mu = self.latent_mu(x)
-        print(np.shape(latent_mu))
-        print('predict 3')
-        latent_sigma = softplus(self.latent_sigma(x)) # softplus to ensure values are positive
-        print('predict 4')
-        print(np.shape(latent_sigma))
-
+        # LATENT SPACE - softplus to ensure values are positive
+        latent_mu = self.latent_mu(x) 
+        latent_sigma = softplus(self.latent_sigma(x)) 
 
         dist = Normal(latent_mu, latent_sigma)
-        print('predict 5')
 
-        z = dist.rsample([self.L])  # shape: [L, batch_size, latent_size]
-        z = z.view(self.L * batch_size, self.latent_size)
-        print('predict 6')
+        z = dist.rsample([self.L])  
+        z = z.view(self.L * batch_size, self.latent_size) 
 
         # DECODER 
         decoded = self.decoder(z)
-        print('predict 7')
-        print(np.shape(decoded))
 
         recon_mu = self.recon_mu(decoded)
-        print('predict 8')
-        recon_mu = recon_mu.view(self.L, batch_size, self.io_size // 1)
-        print('predict 9')
+        recon_mu = recon_mu.view(self.L, -1, 1, 28, 28)
+
         recon_sigma = softplus(self.recon_sigma(decoded))
-        print('predict 10')
-        recon_sigma = recon_sigma.view(self.L, batch_size, self.io_size // 1)
-        print('predict 11')
+        recon_sigma = recon_sigma.view(self.L, -1, 1, 28, 28)
 
         return dict(
             z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
             recon_mu=recon_mu, recon_sigma=recon_sigma)
-
-
-
