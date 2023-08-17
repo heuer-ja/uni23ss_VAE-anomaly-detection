@@ -24,9 +24,9 @@ def main():
     print(f'DEVICE {DEVICE} with {NUM_WORKERS} workers.\n')
 
     # HYPERPARAMETER
-    NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
-    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128
-    LEARNING_RATE = 0.000005
+    NUM_EPOCHS = 2  if DEVICE == 'cpu' else 50
+    BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
+    LEARNING_RATE = 5e-8
 
     print(f'''HYPERPARAMETER:
     \tEpochs:\t\t\t{NUM_EPOCHS}
@@ -69,16 +69,12 @@ def main():
     )
 
     # TEST
-    X1, _ = next(iter(loader_train))    
-
-    X1 = X1.to(DEVICE)
-    pred = model(X1)
-    print('Done')
-
-
-    return 
+    #X1, _ = next(iter(loader_train))    
+    #X1 = X1.to(DEVICE)
+    #pred = model(X1)
+    #print('Done')
+    #return 
     # TRAINING
-     
     train_vae_tabular(
         device=DEVICE, 
         model=model, 
