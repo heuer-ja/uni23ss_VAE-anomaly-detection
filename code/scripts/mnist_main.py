@@ -25,11 +25,12 @@ def main():
 
     # HYPERPARAMETER
     NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
-    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
+    BATCH_SIZE = 16 if DEVICE == 'cpu' else 128
     LEARNING_RATE = 0.000005
-    print('''HYPERPARAMETER:
-    \tEpochs:\t{NUM_EPOCHS}
-    \tBatch size:\t{BATCH_SIZE}
+
+    print(f'''HYPERPARAMETER:
+    \tEpochs:\t\t\t{NUM_EPOCHS}
+    \tBatch size:\t\t{BATCH_SIZE}
     \tLearning rate:\t{LEARNING_RATE}
     ''')
 
@@ -37,6 +38,16 @@ def main():
     data:DatasetMNIST = DatasetMNIST(is_debug=True)
     dataset:TensorDataset = data.get_data()
 
+    X, y = dataset.tensors 
+
+    # LOGGING: show data properties (len, shapes, img resolution)
+    len = X.shape[0]
+    img_resolution = (X.shape[2], X.shape[3])
+    print(f"Length of dataset {len}")
+    print(f"Batch of images shape: {X.shape}, so img resolution is {img_resolution}={img_resolution[0]*img_resolution[1]}")
+    print(f"Batch of labels shape: {y.shape}")
+
+    return 
     loader_train:DataLoader = DataLoader(
         dataset, 
         batch_size=BATCH_SIZE, 
@@ -44,14 +55,9 @@ def main():
         shuffle=True,
     )
 
-    data_iter = iter(loader_train)
-    X, y = next(data_iter)
-    print(f"Batch of images shape: {X.shape}, so input size is {X.shape[2]}*{X.shape[3]}={X.shape[2]*X.shape[3]}")
-    print(f"Batch of labels shape: {y.shape}")
- 
     # MODEL
     model:VAE_CNN = VAE_CNN(
-        io_size=(X.shape[2] * X.shape[3])
+        io_size=(X.shape[1] * X.shape[2])
     )
     model.to(DEVICE)
 
@@ -62,10 +68,10 @@ def main():
     )
 
     # TEST
-    #X = X.to(DEVICE)
-    #pred = model(X)
+    X = X.to(DEVICE)
+    pred = model(X)
 
-
+    return 
     # TRAINING
      
     train_vae_tabular(

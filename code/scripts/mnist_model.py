@@ -78,6 +78,8 @@ class VAE_CNN(nn.Module):
 
     #=================[FORWARD PASS]==============
     def forward(self, x: torch.Tensor) -> dict:
+        x = x.float()  # Convert input to torch.float32
+
         pred_result = self.predict(x)
         x = x.unsqueeze(0)  # unsqueeze to broadcast input across sample dimension (L)
 
