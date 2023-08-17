@@ -9,7 +9,7 @@ from typing import Tuple
 
 import torchvision
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import TensorDataset
 
 class IDataset(ABC):
 
@@ -34,8 +34,8 @@ class DatasetMNIST(IDataset):
 
 
     def get_data(self) -> TensorDataset:
-        dataset = self.load()
-        dataset = self.to_tensor_dataset(dataset)
+        dataset = self.load() 
+        dataset = self.to_tensor_dataset(dataset) 
         return dataset
  
 
@@ -49,11 +49,8 @@ class DatasetMNIST(IDataset):
         return train_dataset 
 
     def to_tensor_dataset(self, dataset) -> TensorDataset:
-        train_loader = DataLoader(dataset, batch_size=16, shuffle=True)
-        data_iter = iter(train_loader)
-        images, labels = next(data_iter)
-
-        tensor_dataset:TensorDataset = TensorDataset(images, labels)
+        tensor_dataset:TensorDataset = TensorDataset(dataset.data, dataset.targets)
+        print('(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return tensor_dataset
 
     
