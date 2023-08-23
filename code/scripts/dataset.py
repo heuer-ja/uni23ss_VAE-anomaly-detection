@@ -34,10 +34,13 @@ class DatasetMNIST(IDataset):
 
 
     def get_data(self) -> TensorDataset:
+        print('LOADING DATA:') if self.is_debug else ''
+
         dataset = self.load() 
         X, y  = self.reshape(dataset)
         dataset:TensorDataset = self.to_tensor_dataset(X, y) 
 
+        print('\t\t(✓) loaded data\n') if self.is_debug else ''
         return dataset
     
 
@@ -47,19 +50,19 @@ class DatasetMNIST(IDataset):
             transforms.Normalize((0.5,), (0.5,))
         ])
         train_dataset = torchvision.datasets.MNIST(root='../../data', train=True, transform=transform, download=True)
-        print('(✓) loaded data\n-----------------') if self.is_debug else ''
+        print('\t\t(✓) downloaded data') if self.is_debug else ''
         return train_dataset 
 
     def reshape(self, dataset) -> Tuple[np.ndarray,np.ndarray]:
         y = dataset.targets
         X = dataset.data
         X = X.view(-1, 1, 28, 28)  # Reshape to [batch_size, channels, height, width]
-        print('(✓) reshaped X') if self.is_debug else ''
+        print('\t\t(✓) reshaped X') if self.is_debug else ''
         return X,y
     
     def to_tensor_dataset(self, X:np.ndarray,y:np.ndarray ) -> TensorDataset:
         tensor_dataset:TensorDataset = TensorDataset(X,y)
-        print('(✓) casted X,y to TensorDataset') if self.is_debug else ''
+        print('\t\t(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return tensor_dataset
 
     
@@ -71,7 +74,7 @@ class DatasetKDD(IDataset):
         pass 
 
     def get_data(self) -> TensorDataset:
-        print('LOADING DATA ...') if self.is_debug else ''
+        print('LOADING DATA:') if self.is_debug else ''
         df:pd.DataFrame
         X:np.ndarray
         y_encoded:np.ndarray
@@ -88,7 +91,7 @@ class DatasetKDD(IDataset):
 
         # to TesnorDataset (DataLoader expects Dataset)
         dataset = self.to_tensor_dataset(X, y_encoded)
-        print('(✓) loaded data\n-----------------') if self.is_debug else ''
+        print('\t\t(✓) loaded data\n') if self.is_debug else ''
         return dataset
      
     def load(self) -> pd.DataFrame:
@@ -98,7 +101,7 @@ class DatasetKDD(IDataset):
         ### 1. Load
         df = pd.read_csv('../../data/kddcup.data_10_percent.gz', header=None)
         cols = pd.read_csv('../../data/kddcup.names',header=None)
-        print('(✓) downloaded labeled data') if self.is_debug else ''
+        print('\t\t(✓) downloaded labeled data') if self.is_debug else ''
         
         ### 2. Add column names to DataFrame
         if cols[0][0] == 'back':
@@ -123,7 +126,7 @@ class DatasetKDD(IDataset):
         # FETCH DATA: ATTACK TYPE  (Summarize labels (i. e., attack types))
         ### 1. Download Attack Types 
         df_attack_types = pd.read_csv('../../data/training_attack_types')
-        print('(✓) loaded attack type data') if self.is_debug else ''
+        print('\t\t(✓) downloaded attack type data') if self.is_debug else ''
 
         ### 2. Split columns (fetched data contains two features in one column, so split it)
         df_temp = pd.DataFrame(columns=['Attack','Type'])
@@ -164,7 +167,7 @@ class DatasetKDD(IDataset):
         scaler = StandardScaler(with_mean=True, with_std=True)
         df_standardized = df.copy()
         df_standardized[numerical_cols] = scaler.fit_transform(df[numerical_cols])
-        print('(✓) standardization of numerical values (mean = 0, std. dev. = 1)') if self.is_debug else ''
+        print('\t\t(✓) standardization of numerical values (mean = 0, std. dev. = 1)') if self.is_debug else ''
 
         return df_standardized
 
@@ -176,7 +179,7 @@ class DatasetKDD(IDataset):
 
         ### merge y-variable with one-hot encoded features
         df = pd.concat([df.iloc[:, 0:2:1], df_encoded], axis=1)
-        print('(✓) one-hot encoded categorical columns') if self.is_debug else ''
+        print('\t\t(✓) one-hot encoded categorical columns') if self.is_debug else ''
 
         return df 
 
@@ -194,7 +197,7 @@ class DatasetKDD(IDataset):
         # encode labels
         label_encoder = LabelEncoder()
         y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
-        print('(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
+        print('\t(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
 
         return X,y_encoded
 
@@ -211,7 +214,7 @@ class DatasetKDD(IDataset):
         y_tensor = y_tensor.float()
 
         dataset:TensorDataset = TensorDataset(X_tensor, y_tensor)
-        print('(✓) casted X,y to TensorDataset') if self.is_debug else ''
+        print('\t\t(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return dataset
 
 def main() -> None:
