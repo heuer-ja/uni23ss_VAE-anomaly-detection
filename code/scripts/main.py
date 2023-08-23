@@ -16,8 +16,7 @@ from torch.optim import Adam
 from enum import Enum
 
 # own classes
-from mnist_model import VAE_CNN
-from tabular_model import VAE_Tabular
+from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from train import train
 
