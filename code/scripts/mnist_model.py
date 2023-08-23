@@ -15,8 +15,6 @@ from torch.distributions import Normal, kl_divergence
 # own classes
 from dataset import DatasetMNIST
 from helper_vae_architecture import ProbabilisticVAEArchitecture
-from tabular_train import train_vae_tabular
-
 
 
 class VAE_CNN(nn.Module):

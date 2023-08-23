@@ -10,6 +10,7 @@ sys.dont_write_bytecode = True
 # libraries
 import os
 import torch 
+import torch.nn as nn
 from torch.utils.data import TensorDataset , DataLoader
 from torch.optim import Adam
 from enum import Enum
@@ -18,7 +19,7 @@ from enum import Enum
 from mnist_model import VAE_CNN
 from tabular_model import VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
-from tabular_train import train_vae_tabular
+from train import train
 
 # Enum for model selection
 class ModelToTrain(Enum):
@@ -26,7 +27,7 @@ class ModelToTrain(Enum):
     FULLY_TABULAR = 2
 
 def main():
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR	
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST	
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -69,7 +70,7 @@ def main():
     )
 
     # MODEL
-    model = None 
+    model:nn.Module = None 
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
         X, y = dataset.tensors 
 
@@ -100,7 +101,7 @@ def main():
     )
 
     # TRAINING
-    train_vae_tabular(
+    train(
         device=DEVICE, 
         model=model, 
         num_epochs=NUM_EPOCHS ,

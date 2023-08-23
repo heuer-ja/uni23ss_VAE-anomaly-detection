@@ -7,12 +7,11 @@ import torch.nn as nn
 
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
-from tabular_model import VAE_Tabular
 
 
-def train_vae_tabular(
+def train(
         device:str, 
-        model, 
+        model:nn.Module, 
         num_epochs:int, 
         optimizer:Optimizer, 
         train_loader:DataLoader, 
@@ -44,8 +43,6 @@ def train_vae_tabular(
                 print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f | KL: %.4f | RecLoss: %.4f'
                       % (epoch, num_epochs, batch_idx,
                           len(train_loader), loss, kl, recon_loss))
-    
-     
 
         print('Time elapsed: %.2f min' % ((time.time() - start_time)/60))
 
