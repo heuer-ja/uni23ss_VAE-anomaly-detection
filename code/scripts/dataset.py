@@ -152,9 +152,9 @@ class DatasetKDD(IDataset):
             '''
         cols_categorical = ['protocol_type', 'service', 'flag', 'land', 'logged_in', 'is_host_login', 'is_guest_login']
         df[cols_categorical] = df[cols_categorical].astype(str)
-        print(f'''(✓) fixed dtypes (int -> str) 
-        with len =\t\t{len(df.select_dtypes(exclude=[float, int]).columns )} 
-        with columns =\t{df.select_dtypes(exclude=[float, int]).columns}''') if self.is_debug else ''
+        print(f'''\t\t(✓) fixed dtypes (int -> str) 
+        \twith len =\t\t{len(df.select_dtypes(exclude=[float, int]).columns )} 
+        \twith columns =\t{df.select_dtypes(exclude=[float, int]).columns.values}''') if self.is_debug else ''
         return df
 
     def normalize(self, df:pd.DataFrame)-> pd.DataFrame:
@@ -197,7 +197,7 @@ class DatasetKDD(IDataset):
         # encode labels
         label_encoder = LabelEncoder()
         y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
-        print('\t(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
+        print('\t\t(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
 
         return X,y_encoded
 
