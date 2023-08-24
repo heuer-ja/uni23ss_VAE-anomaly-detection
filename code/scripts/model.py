@@ -82,9 +82,11 @@ class IVAE(nn.Module, ABC):
             z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
             recon_mu=recon_mu, recon_sigma=recon_sigma)
 
-    #=================[FORWARD PASS]==============
+    #=================[ANOMALY DETECTION]==============
     def is_anomaly(self, x: torch.Tensor, alpha: float = 0.05) -> torch.Tensor:
         x = x.float()  # Convert input to torch.float32
+
+        #  reconstructed probability
         with torch.no_grad():
             pred = self.predict(x)
         recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
