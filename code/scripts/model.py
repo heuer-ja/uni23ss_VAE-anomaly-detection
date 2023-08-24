@@ -9,7 +9,7 @@ from torch.distributions import Normal, kl_divergence
 from abc import ABC, abstractmethod
 
 # own classes
-from helper_vae_architecture import ProbabilisticVAEArchitecture
+from helper_classes import ProbabilisticVAEArchitecture
 
 class IVAE(nn.Module, ABC):
     def __init__(self, 
@@ -18,10 +18,10 @@ class IVAE(nn.Module, ABC):
         super().__init__()
         self.io_size = io_size
         self.latent_size = latent_size
-
         self.L = 10 #  Number of samples in the latent space to detect the anomaly.
         self.prior =  Normal(0,1)
         
+        # architecture
         architecture:ProbabilisticVAEArchitecture= self.get_architecture()
         self.encoder:nn.Module =  architecture.encoder
         self.latent_mu:nn.Module = architecture.latent_mu

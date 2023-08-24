@@ -5,6 +5,7 @@
 
 
 import sys
+
 sys.dont_write_bytecode = True
 
 # libraries
@@ -13,17 +14,13 @@ import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset , DataLoader
 from torch.optim import Adam
-from enum import Enum
 
 # own classes
 from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
+from helper_classes import ModelToTrain
 from train import train
 
-# Enum for model selection
-class ModelToTrain(Enum):
-    CNN_MNIST = 1,
-    FULLY_TABULAR = 2
 
 def main():
     MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST	
@@ -38,7 +35,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 15
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 5e-8 
     
