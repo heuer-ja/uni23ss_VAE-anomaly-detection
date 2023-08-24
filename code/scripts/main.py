@@ -107,13 +107,13 @@ def main():
         train_loader=loader_train,
     )
 
-
     # ANOMALY DETECTION
+    print('ANOMALY DETECTION')
     batch1_X, batch1_y = next(iter(loader_train))
     batch1_X = batch1_X.to(DEVICE)
 
     outliers = model.is_anomaly(batch1_X)
-    print(f'Outliers: {outliers}')
+    print(f'\tOutliers: {outliers}')
 
 if __name__ == "__main__": 
     main()
