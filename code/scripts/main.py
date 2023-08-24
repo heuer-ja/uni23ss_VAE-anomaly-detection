@@ -70,9 +70,8 @@ def main():
 
     # MODEL
     model:nn.Module = None 
+    X, y = dataset.tensors 
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        X, y = dataset.tensors 
-
         # LOGGING: show data properties (len, shapes, img resolution)
         len = X.shape[0]
         img_resolution = (X.shape[2], X.shape[3])
@@ -107,6 +106,14 @@ def main():
         optimizer=OPTIMIZER, 
         train_loader=loader_train,
     )
+
+
+    # ANOMALY DETECTION
+    batch1_X, batch1_y = next(iter(loader_train))
+    batch1_X = batch1_X.to(DEVICE)
+
+    outliers = model.is_anomaly(batch1_X)
+    print(f'Outliers: {outliers}')
 
 if __name__ == "__main__": 
     main()

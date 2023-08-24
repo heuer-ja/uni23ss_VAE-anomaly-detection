@@ -51,7 +51,7 @@ class IVAE(nn.Module, ABC):
         return dict(loss=loss, kl=kl, recon_loss=log_lik, **pred_result)
     
     def predict(self, x) -> dict:
-        # INPUT SHAPE
+        # INPUT
         batch_size = len(x)
         shape:[int] = list(x.shape)
 
@@ -82,6 +82,15 @@ class IVAE(nn.Module, ABC):
             z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
             recon_mu=recon_mu, recon_sigma=recon_sigma)
 
+    #=================[FORWARD PASS]==============
+    def is_anomaly(self, x: torch.Tensor, alpha: float = 0.05) -> torch.Tensor:
+        x = x.float()  # Convert input to torch.float32
+        with torch.no_grad():
+            pred = self.predict(x)
+        recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
+        x = x.unsqueeze(0)
+        p = recon_dist.log_prob(x).exp().mean(dim=0).mean(dim=-1)  # vector of shape [batch_size]
+        return p < alpha
 
 class VAE_CNN(IVAE):
     def __init__(
