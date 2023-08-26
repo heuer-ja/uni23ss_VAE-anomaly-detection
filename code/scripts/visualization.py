@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from helper_classes import LogTrainPreds
 
 def plot_train_preds(log_train_pred:LogTrainPreds):
+    file_name:str = 'training_progress.png'
+
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
     ax[0].plot(log_train_pred.loss)
     ax[0].set_title('Loss')
@@ -11,5 +13,7 @@ def plot_train_preds(log_train_pred:LogTrainPreds):
     ax[2].plot(log_train_pred.recon_loss)
     ax[2].set_title('Recon Loss')
     
-    plt.savefig('training_progress.png')
+
+    print(f'Plotting training progress in {file_name}\n')
+    plt.savefig(file_name)
     return
