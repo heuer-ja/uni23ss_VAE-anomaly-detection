@@ -84,15 +84,18 @@ class IVAE(nn.Module, ABC):
 
     #=================[ANOMALY DETECTION]==============
     def is_anomaly(self, x: torch.Tensor, alpha: float = 0.05) -> torch.Tensor:
-        x = x.float()  # Convert input to torch.float32
-
-        #  reconstructed probability
+        p = self.reconstruction_probability(x)
+        return p < alpha
+    
+    def reconstruction_probability(self, x: torch.Tensor) -> torch.Tensor:
+        x = x.float()
         with torch.no_grad():
             pred = self.predict(x)
+
         recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
         x = x.unsqueeze(0)
         p = recon_dist.log_prob(x).exp().mean(dim=0).mean(dim=-1)  # vector of shape [batch_size]
-        return p < alpha
+        return p
 
 class VAE_CNN(IVAE):
     def __init__(

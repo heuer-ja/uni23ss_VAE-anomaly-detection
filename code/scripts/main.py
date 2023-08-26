@@ -35,7 +35,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 15
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 5e-8 
     
@@ -106,11 +106,24 @@ def main():
 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
-    batch1_X, batch1_y = next(iter(loader_train))
-    batch1_X = batch1_X.to(DEVICE)
 
-    outliers = model.is_anomaly(batch1_X)
-    print(f'\tOutliers: {outliers}')
+    # detect alpha (max reconstruction prob. of train data)
+    alpha:float = 0
+    for x_batch, _ in loader_train:        
+        x_batch = x_batch.to(DEVICE)
+        probs:torch.Tensor = model.reconstruction_probability(x_batch)
+
+        if probs.max().item() > alpha:
+            alpha = probs.max().item()
+            print(f'\tNew alpha: {alpha}')
+
+    print(f'\tAlpha: {alpha}')
+
+    # detect anomalies
+    #batch1_X, batch1_y = next(iter(loader_train))
+    #batch1_X = batch1_X.to(DEVICE)
+    #outliers = model.is_anomaly(batch1_X)
+    #print(f'\tOutliers: {outliers}')
 
 if __name__ == "__main__": 
     main()
