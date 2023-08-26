@@ -6,6 +6,7 @@
 
 import sys
 
+
 sys.dont_write_bytecode = True
 
 # libraries
@@ -20,6 +21,7 @@ from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import ModelToTrain
 from train import train
+from anomaly_detection import detect_anomalies
 
 
 def main():
@@ -107,17 +109,12 @@ def main():
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
 
-    # detect alpha (max reconstruction prob. of train data)
-    alpha:float = 0
-    for x_batch, _ in loader_train:        
-        x_batch = x_batch.to(DEVICE)
-        probs:torch.Tensor = model.reconstruction_probability(x_batch)
-
-        if probs.max().item() > alpha:
-            alpha = probs.max().item()
-            print(f'\tNew alpha: {alpha}')
-
-    print(f'\tAlpha: {alpha}')
+    detect_anomalies(
+        model=model,
+        loader_train=loader_train,
+        loader_test=None, # TODO
+        DEVICE=DEVICE,
+    )
 
     # detect anomalies
     #batch1_X, batch1_y = next(iter(loader_train))
