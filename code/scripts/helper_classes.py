@@ -46,3 +46,10 @@ class LabelsMNIST(int, Enum):
     Seven = 7,
     Eight = 8,
     Nine = 9
+
+class LabelsKDD1999(str, Enum):
+    Normal = 'normal',
+    Probe = 'probe',
+    DoS = 'dos',
+    U2R = 'u2r',
+    R2L = 'r2l'

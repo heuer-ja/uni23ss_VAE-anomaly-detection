@@ -11,7 +11,7 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import TensorDataset
 
-from helper_classes import LabelsMNIST
+from helper_classes import LabelsKDD1999, LabelsMNIST
 
 class IDataset(ABC):
 
@@ -125,26 +125,31 @@ class DatasetKDD(IDataset):
         self.is_debug = is_debug
         pass 
 
-    def get_data(self) -> TensorDataset:
+    def get_data(self, anomaly_class:LabelsKDD1999) -> [TensorDataset, TensorDataset]:
         print('LOADING DATA:') if self.is_debug else ''
-        df:pd.DataFrame
-        X:np.ndarray
-        y_encoded:np.ndarray
-        dataset:TensorDataset
-
         # Load & pre-process data (dataframe)
-        df = self.load()
+        df:pd.DataFrame = self.load()
         df = self.fix_dtypes(df)
         df = self.normalize(df)
         df = self.one_hot_encoding(df)
 
-        # split into X, y(encoded) 
-        X, y_encoded = self.get_X_Yencoded(df)
+        # split into train and test
+        df_train:pd.DataFrame = df.sample(frac=0.8, random_state=42)
+        df_test:pd.DataFrame = df.drop(df_train.index)
 
-        # to TesnorDataset (DataLoader expects Dataset)
-        dataset = self.to_tensor_dataset(X, y_encoded)
+        # extract anomaly class from df_train and add anomaly to df_test
+        df_train, df_test = self.get_anomaly_train_test(df_train, df_test, anomaly_class)
+    
+        # split into X, y(encoded) 
+        X_train, y_train_encoded = self.get_X_Yencoded(df_train)
+        X_test, y_test_encoded = self.get_X_Yencoded(df_test)
+
+        # to TensorDataset (DataLoader expects Dataset)
+        dataset_train:TensorDataset = self.to_tensor_dataset(X_train, y_train_encoded)
+        dataset_test:TensorDataset = self.to_tensor_dataset(X_test, y_test_encoded)
+
         print('\t\t(✓) loaded data\n') if self.is_debug else ''
-        return dataset
+        return dataset_train, dataset_test
      
     def load(self) -> pd.DataFrame:
         '''load local data from directory and setup a dataframe'''
@@ -249,9 +254,30 @@ class DatasetKDD(IDataset):
         # encode labels
         label_encoder = LabelEncoder()
         y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
-        print('\t\t(✓) casted DataFrame into X, y (y is encoded)') if self.is_debug else ''
 
+        print('\t\t(✓) casted DataFrame into X, y (y is one-hot encoded)') if self.is_debug else ''
         return X,y_encoded
+
+        
+    def get_anomaly_train_test(
+            self,
+            df_train:pd.DataFrame,
+            df_test:pd.DataFrame,
+            anomaly_class:LabelsKDD1999                   
+        ) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        "splits dataset into train (only normal) and test (normal, and anomaly) set"
+        
+        # add anomaly class to test
+        df_test = pd.concat([df_test, df_train[df_train['Attack Type'] == anomaly_class]], ignore_index=True)
+
+        # remove anomaly class from train
+        df_train = df_train[df_train['Attack Type'] != anomaly_class]
+
+        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t\tlabels:\t{df_train["Attack Type"].unique().tolist()}') if self.is_debug else ''
+        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t\tlabels:\t{df_test["Attack Type"].unique().tolist()}') if self.is_debug else ''
+        return df_train, df_test
 
     def to_tensor_dataset(self, X:np.ndarray, y:np.ndarray) -> TensorDataset:
         '''

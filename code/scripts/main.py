@@ -19,13 +19,15 @@ from torch.optim import Adam
 # own classes
 from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
-from helper_classes import LabelsMNIST, ModelToTrain
+from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
 
 def main():
-    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST	
+    # MODEL & ANOMALY CLASS
+    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
+    ANOMALY_CLASS = LabelsKDD1999.U2R.value if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five.value
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -51,6 +53,7 @@ def main():
 
     print(f'''HYPERPARAMETER:
     \tModel:\t\t\t{MODEL_TO_TRAIN}
+    \tAnomaly class:\t{ANOMALY_CLASS}
     \tEpochs:\t\t\t{NUM_EPOCHS}
     \tBatch size:\t\t{BATCH_SIZE}
     \tLearning rate:\t{LEARNING_RATE}
@@ -62,7 +65,7 @@ def main():
     dataset_train:TensorDataset = None 
     dataset_test:TensorDataset = None 
     
-    dataset_train, dataset_test = data.get_data(anomaly_class=LabelsMNIST.Four)
+    dataset_train, dataset_test = data.get_data(anomaly_class=ANOMALY_CLASS)
     loader_train:DataLoader = DataLoader(
         dataset_train, 
         batch_size=BATCH_SIZE, 
@@ -95,8 +98,6 @@ def main():
     else:
         raise Exception('Invalid model to train')
 
-    
-    return 
     model.to(DEVICE)
 
     # OPTIMIZER
@@ -114,6 +115,7 @@ def main():
         train_loader=loader_train,
     )
 
+    return 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
 
