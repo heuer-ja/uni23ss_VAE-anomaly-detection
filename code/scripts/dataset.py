@@ -4,12 +4,14 @@ import  numpy as np
 
 from abc import ABC, abstractclassmethod
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from torch.utils.data import TensorDataset , ConcatDataset
+from torch.utils.data import TensorDataset 
 from typing import Tuple
 
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import TensorDataset
+
+from helper_classes import LabelsMNIST
 
 class IDataset(ABC):
 
@@ -43,16 +45,22 @@ class DatasetMNIST(IDataset):
         pass 
 
 
-    def get_data(self) -> Tuple[TensorDataset,TensorDataset]:
-        print('LOADING DATA:') if self.is_debug else ''
+    def get_data(
+            self, 
+            anomaly_class:LabelsMNIST = LabelsMNIST.Two.value
+        ) -> Tuple[TensorDataset,TensorDataset]:
+        print(f'LOADING DATA (anomaly class = {anomaly_class}):') if self.is_debug else ''
 
         # Load & pre-process data
         train_dataset, test_dataset = self.load()
         X_train, y_train = self.reshape(train_dataset)
         X_test, y_test = self.reshape(test_dataset)
 
-        # extract anomaly class from train and add to test
-        X_train, y_train, X_test, y_test = self.get_anomaly_train_test(X_train, y_train, X_test, y_test, anomaly_class=1)
+        # extract anomaly class from train and add anomaly to test
+        X_train, y_train, X_test, y_test = self.get_anomaly_train_test(
+            X_train, y_train, 
+            X_test, y_test, 
+            anomaly_class=anomaly_class)
 
         # convert to TensorDataset
         dataset_train:TensorDataset = self.to_tensor_dataset(X_train, y_train) 
@@ -70,14 +78,14 @@ class DatasetMNIST(IDataset):
         train_dataset = torchvision.datasets.MNIST(root='../../data', train=True, transform=transform, download=True)
         test_dataset = torchvision.datasets.MNIST(root='../../data', train=False, transform=transform, download=True)
 
-        print('\t\t(✓) downloaded data') if self.is_debug else ''
+        print('\t\t(✓) downloaded data (train & test)') if self.is_debug else ''
         return train_dataset, test_dataset
 
     def reshape(self, dataset) -> Tuple[np.ndarray,np.ndarray]:
         y = dataset.targets
         X = dataset.data
         X = X.view(-1, 1, 28, 28)  # Reshape to [batch_size, channels, height, width]
-        print('\t\t(✓) reshaped X') if self.is_debug else ''
+        print('\t\t(✓) reshaped X for train/test') if self.is_debug else ''
         return X,y
     
 
@@ -86,7 +94,7 @@ class DatasetMNIST(IDataset):
                 y_train:np.ndarray,
                 X_test:np.ndarray,
                 y_test:np.ndarray,
-                anomaly_class:int 
+                anomaly_class:LabelsMNIST
                 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         "splits dataset into train (only normal) and test (normal, and anomaly) set"
 
@@ -107,7 +115,7 @@ class DatasetMNIST(IDataset):
     
     def to_tensor_dataset(self, X:np.ndarray,y:np.ndarray ) -> TensorDataset:
         tensor_dataset:TensorDataset = TensorDataset(X,y)
-        print('\t\t(✓) casted X,y to TensorDataset') if self.is_debug else ''
+        print('\t\t(✓) casted X,y to TensorDataset for train/test') if self.is_debug else ''
         return tensor_dataset
 
         

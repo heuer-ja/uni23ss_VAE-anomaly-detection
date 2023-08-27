@@ -19,7 +19,7 @@ from torch.optim import Adam
 # own classes
 from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
-from helper_classes import ModelToTrain
+from helper_classes import LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
@@ -62,7 +62,7 @@ def main():
     dataset_train:TensorDataset = None 
     dataset_test:TensorDataset = None 
     
-    dataset_train, dataset_test = data.get_data()
+    dataset_train, dataset_test = data.get_data(anomaly_class=LabelsMNIST.Four)
     loader_train:DataLoader = DataLoader(
         dataset_train, 
         batch_size=BATCH_SIZE, 
