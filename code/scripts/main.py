@@ -89,6 +89,11 @@ def main():
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
         model:VAE_Tabular = VAE_Tabular()
 
+    else:
+        raise Exception('Invalid model to train')
+
+    
+    return 
     model.to(DEVICE)
 
     # OPTIMIZER
