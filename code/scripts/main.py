@@ -59,9 +59,12 @@ def main():
 
     # LOAD DATA (full; no split)
     data:IDataset = DatasetMNIST(is_debug=True)  if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST else DatasetKDD(is_debug=True)
-    dataset:TensorDataset = data.get_data()
+    dataset_train:TensorDataset = None 
+    dataset_test:TensorDataset = None 
+    
+    dataset_train, dataset_test = data.get_data()
     loader_train:DataLoader = DataLoader(
-        dataset, 
+        dataset_train, 
         batch_size=BATCH_SIZE, 
         num_workers=NUM_WORKERS,
         shuffle=True,
@@ -69,7 +72,7 @@ def main():
 
     # MODEL
     model:nn.Module = None 
-    X, y = dataset.tensors 
+    X, y = dataset_train.tensors 
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
         # LOGGING: show data properties (len, shapes, img resolution)
         len = X.shape[0]

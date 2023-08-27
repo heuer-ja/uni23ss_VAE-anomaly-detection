@@ -4,7 +4,7 @@ import  numpy as np
 
 from abc import ABC, abstractclassmethod
 from sklearn.preprocessing import StandardScaler, LabelEncoder
-from torch.utils.data import TensorDataset 
+from torch.utils.data import TensorDataset , ConcatDataset
 from typing import Tuple
 
 import torchvision
@@ -25,6 +25,16 @@ class IDataset(ABC):
     def to_tensor_dataset(self) -> TensorDataset:
         pass
 
+    @abstractclassmethod
+    def get_anomaly_train_test(self, 
+                X_train:np.ndarray,
+                y_train:np.ndarray,
+                X_test:np.ndarray,
+                y_test:np.ndarray
+                ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        "splits dataset into train (only normal) and test (normal, and anomaly) set"
+        pass
+
 
 class DatasetMNIST(IDataset):
     def __init__(self, is_debug=True) -> None:
@@ -33,25 +43,35 @@ class DatasetMNIST(IDataset):
         pass 
 
 
-    def get_data(self) -> TensorDataset:
+    def get_data(self) -> Tuple[TensorDataset,TensorDataset]:
         print('LOADING DATA:') if self.is_debug else ''
 
-        dataset = self.load() 
-        X, y  = self.reshape(dataset)
-        dataset:TensorDataset = self.to_tensor_dataset(X, y) 
+        # Load & pre-process data
+        train_dataset, test_dataset = self.load()
+        X_train, y_train = self.reshape(train_dataset)
+        X_test, y_test = self.reshape(test_dataset)
+
+        # extract anomaly class from train and add to test
+        X_train, y_train, X_test, y_test = self.get_anomaly_train_test(X_train, y_train, X_test, y_test, anomaly_class=1)
+
+        # convert to TensorDataset
+        dataset_train:TensorDataset = self.to_tensor_dataset(X_train, y_train) 
+        dataset_test:TensorDataset = self.to_tensor_dataset(X_test, y_test)
 
         print('\t\t(✓) loaded data\n') if self.is_debug else ''
-        return dataset
+        return dataset_train, dataset_test
     
 
-    def load(self):
+    def load(self) -> Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
         transform = transforms.Compose([
             transforms.ToTensor(),
             transforms.Normalize((0.5,), (0.5,))
         ])
         train_dataset = torchvision.datasets.MNIST(root='../../data', train=True, transform=transform, download=True)
+        test_dataset = torchvision.datasets.MNIST(root='../../data', train=False, transform=transform, download=True)
+
         print('\t\t(✓) downloaded data') if self.is_debug else ''
-        return train_dataset 
+        return train_dataset, test_dataset
 
     def reshape(self, dataset) -> Tuple[np.ndarray,np.ndarray]:
         y = dataset.targets
@@ -60,12 +80,36 @@ class DatasetMNIST(IDataset):
         print('\t\t(✓) reshaped X') if self.is_debug else ''
         return X,y
     
+
+    def get_anomaly_train_test(self, 
+                X_train:np.ndarray,
+                y_train:np.ndarray,
+                X_test:np.ndarray,
+                y_test:np.ndarray,
+                anomaly_class:int 
+                ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        "splits dataset into train (only normal) and test (normal, and anomaly) set"
+
+        # add anomaly class to test
+        X_test = torch.cat([X_test, X_train[y_train == anomaly_class]], dim=0)
+        y_test = torch.cat([y_test, y_train[y_train == anomaly_class]], dim=0)
+
+        # remove anomaly class from train
+        X_train = X_train[y_train != anomaly_class]
+        y_train = y_train[y_train != anomaly_class]
+
+        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t\tlabels:\t{y_train.unique().tolist()}') if self.is_debug else ''
+        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t\tlabels:\t{y_test.unique().tolist()}') if self.is_debug else ''
+
+        return X_train, y_train, X_test, y_test
+    
     def to_tensor_dataset(self, X:np.ndarray,y:np.ndarray ) -> TensorDataset:
         tensor_dataset:TensorDataset = TensorDataset(X,y)
         print('\t\t(✓) casted X,y to TensorDataset') if self.is_debug else ''
         return tensor_dataset
 
-    
         
 class DatasetKDD(IDataset):
     def __init__(self, is_debug=True) -> None:
