@@ -5,6 +5,7 @@
 
 
 import sys
+from typing import List
 
 
 sys.dont_write_bytecode = True
@@ -26,7 +27,7 @@ from anomaly_detection import detect_anomalies
 
 def main():
     # MODEL & ANOMALY CLASS
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
     ANOMALY_CLASS = LabelsKDD1999.U2R.value if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five.value
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
@@ -39,7 +40,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 5e-8 
     
@@ -51,21 +52,13 @@ def main():
     else:
         raise Exception('Invalid model to train')
 
-    print(f'''HYPERPARAMETER:
-    \tModel:\t\t\t{MODEL_TO_TRAIN}
-    \tAnomaly class:\t{ANOMALY_CLASS}
-    \tEpochs:\t\t\t{NUM_EPOCHS}
-    \tBatch size:\t\t{BATCH_SIZE}
-    \tLearning rate:\t{LEARNING_RATE}
-    ''')
-
-
     # LOAD DATA (full; no split)
+    class_labels:List = [label.value for label in LabelsKDD1999] if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else [label.value for label in LabelsMNIST]
     data:IDataset = DatasetMNIST(is_debug=True)  if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST else DatasetKDD(is_debug=True)
     dataset_train:TensorDataset = None 
     dataset_test:TensorDataset = None 
-    
     dataset_train, dataset_test = data.get_data(anomaly_class=ANOMALY_CLASS)
+    
     loader_train:DataLoader = DataLoader(
         dataset_train, 
         batch_size=BATCH_SIZE, 
@@ -73,12 +66,34 @@ def main():
         shuffle=True,
     )
 
+    loader_test:DataLoader = DataLoader(
+        dataset_test,
+        batch_size=BATCH_SIZE,
+        num_workers=NUM_WORKERS,
+        shuffle=True,
+    )
+    X, y = dataset_train.tensors 
+    len = X.shape[0]
+
+    X_test, y_test = dataset_test.tensors
+    len_test = X_test.shape[0]
+
+    print(f'''HYPERPARAMETER:
+    \tModel:\t\t\t{MODEL_TO_TRAIN}
+    \tAnomaly class:\t{ANOMALY_CLASS}
+    \tEpochs:\t\t\t{NUM_EPOCHS}
+    \tBatch size:\t\t{BATCH_SIZE}
+    \tLearning rate:\t{LEARNING_RATE}
+    \tLength of training dataset {len}
+    \tLength of test dataset {len_test}
+    ''')
+
+
+
     # MODEL
     model:nn.Module = None 
-    X, y = dataset_train.tensors 
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        # LOGGING: show data properties (len, shapes, img resolution)
-        len = X.shape[0]
+        # LOGGING: show data properties (shapes, img resolution)
         img_resolution = (X.shape[2], X.shape[3])
         model:VAE_CNN = VAE_CNN(
             io_size=(img_resolution[0] * img_resolution[1])
@@ -89,7 +104,6 @@ def main():
         Labels shape: {y.shape}
         Images shape: {X.shape}
         Img resolution is {img_resolution}={img_resolution[0]*img_resolution[1]}
-
         ''')
 
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
@@ -115,17 +129,18 @@ def main():
         train_loader=loader_train,
     )
 
-    return 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
 
     detect_anomalies(
         model=model,
         loader_train=loader_train,
-        loader_test=None, # TODO
+        loader_test=loader_test,
         DEVICE=DEVICE,
+        class_labels=class_labels,
     )
 
+    return 
     # detect anomalies
     #batch1_X, batch1_y = next(iter(loader_train))
     #batch1_X = batch1_X.to(DEVICE)
