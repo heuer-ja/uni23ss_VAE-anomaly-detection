@@ -40,12 +40,12 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 1
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 5e-8 
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 1
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
         LEARNING_RATE = 5e-7
     
@@ -140,12 +140,13 @@ def main():
         class_labels=class_labels,
     )
 
-    return 
+
     # detect anomalies
     #batch1_X, batch1_y = next(iter(loader_train))
     #batch1_X = batch1_X.to(DEVICE)
     #outliers = model.is_anomaly(batch1_X)
     #print(f'\tOutliers: {outliers}')
+    #print(f'\tOutliers Shape: {outliers.shape}')
 
 if __name__ == "__main__": 
     main()
