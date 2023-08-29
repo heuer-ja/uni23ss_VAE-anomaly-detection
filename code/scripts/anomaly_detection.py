@@ -60,31 +60,29 @@ def detect_anomalies(
     # combine anomalies with labels
     anomalies_bitmask = torch.stack([anomalies_bitmask, y_test], dim=1)
     
-    # Distribution of classes across test set
-
-
-    df_columns:[str] = ['Class', '#Instances (Train)', '#Instances (Test)', '#Normals (Test)', '#Anomalies (Test)']
-    df:pd.DataFrame = pd.DataFrame(columns=df_columns)
-    
-
+    # Distribution of classes
+    d = []
     for c in class_labels:
-        instances_train = len(y_train[y_train==c])
-        instances_test = len(y_test[y_test==c])
-        anomalies_test = len(anomalies_bitmask[anomalies_bitmask[:,1]==c])
-        normals_test  = instances_test - anomalies_test
 
-        df_temp:pd.DataFrame = pd.DataFrame(
-                data=[[c, instances_train, instances_test, normals_test, anomalies_test]], 
-                columns=df_columns
-                )
-        
-        df = pd.concat([df, df_temp])
+        len_train:int = len(y_train[y_train==c])
+        len_test:int = len(y_test[y_test==c])
+        len_anomalies:int = len(anomalies_bitmask[anomalies_bitmask[:,1]==c])
+        d.append({
+            'Class': c,
+            '#Data (Train)': len_train,
+            '#Data (Test)': len_test,
+            '#Normals (Test)': len_test - len_anomalies,
+            '#Anomalies (Test)': len_anomalies,
+        })
 
-    print(df.head(10))
+    df:pd.DataFrame = pd.DataFrame(d)
+    df.loc['Total'] = df.sum(numeric_only=True, axis=0)
+
+    print(df.head(11))
     return 
 
     ### THIS WORKS FOR KDD1999 ONLY
-    
+
     # print distribution of classes 
     print('\nDistribution TRAIN SET')
     print(f'Class || #Instances')
