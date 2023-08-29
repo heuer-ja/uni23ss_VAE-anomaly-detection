@@ -3,10 +3,9 @@ import torch.nn as nn
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from typing import List
 from model import IVAE 
 
-from helper_classes import dict_kdd1999_labels
+from helper_classes import ModelToTrain, dict_kdd1999_labels
 
 
 def determine_alpha(
@@ -34,8 +33,9 @@ def detect_anomalies(
         model:IVAE, 
         loader_train:DataLoader, 
         loader_test:DataLoader, 
+        class_labels:[int],
         DEVICE:str,
-        class_labels:List 
+        model_to_train:ModelToTrain
         ) :
     
     # determine alpha
@@ -45,7 +45,7 @@ def detect_anomalies(
     y_test = loader_test.dataset.tensors[1].squeeze().to(DEVICE)
 
     # detect anomalies
-    anomalies_bitmask:List = []
+    anomalies_bitmask:[] = []
     for x_batch, y_batch in loader_test:        
 
         x_batch = x_batch.to(DEVICE)
@@ -63,7 +63,6 @@ def detect_anomalies(
     # Distribution of classes
     d = []
     for c in class_labels:
-
         len_train:int = len(y_train[y_train==c])
         len_test:int = len(y_test[y_test==c])
         len_anomalies:int = len(anomalies_bitmask[anomalies_bitmask[:,1]==c])
@@ -78,27 +77,11 @@ def detect_anomalies(
     df:pd.DataFrame = pd.DataFrame(d)
     df.loc['Total'] = df.sum(numeric_only=True, axis=0)
 
+    # LOGGING
+    if model_to_train == ModelToTrain.FULLY_TABULAR:
+        print(f'\tEncoded labels to digits:') 
+        for key, value in dict_kdd1999_labels.items():
+            print(f'\t\t\t{key} -> {value}') 
+
     print(df.head(11))
-    return 
-
-    ### THIS WORKS FOR KDD1999 ONLY
-
-    # print distribution of classes 
-    print('\nDistribution TRAIN SET')
-    print(f'Class || #Instances')
-    y_train = loader_train.dataset.tensors[1].squeeze().to(DEVICE)
-    for k, v in dict_kdd1999_labels.items():
-        instances = len(y_train[y_train==v])
-        print(f'{k} || {instances}')
-
-
-    print('\nDistribution TEST SET')
-    print(f'Class || #Instances | #Normals | #Anomalies')
-    for k, v in dict_kdd1999_labels.items():
-        instances = len(y_test[y_test==v])
-        anomalies = len(anomalies_bitmask[anomalies_bitmask[:,1]==v])
-        normals = instances - anomalies
-
-        print(f'{k} || {instances} | {normals} | {anomalies}')
-
     return

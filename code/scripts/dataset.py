@@ -256,9 +256,6 @@ class DatasetKDD(IDataset):
 
         # create encoded y based on dict
         y_encoded:np.ndarray = y.replace(dict_kdd1999_labels).values
-        print(f'\t\tEncoded labels to digits:') 
-        for key, value in dict_kdd1999_labels.items():
-            print(f'\t\t\t{key} -> {value}') if self.is_debug else ''
 
         print('\t\t(✓) casted DataFrame into X, y (y is one-hot encoded)') if self.is_debug else ''
         return X,y_encoded
