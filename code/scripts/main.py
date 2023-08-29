@@ -20,7 +20,7 @@ from torch.optim import Adam
 # own classes
 from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
-from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
+from helper_classes import LabelsKDD1999str, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
@@ -28,7 +28,7 @@ from anomaly_detection import detect_anomalies
 def main():
     # MODEL & ANOMALY CLASS
     MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
-    ANOMALY_CLASS = LabelsKDD1999.U2R.value if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five.value
+    ANOMALY_CLASS = LabelsKDD1999str.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -45,15 +45,15 @@ def main():
         LEARNING_RATE = 5e-8 
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 1
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 15
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
-        LEARNING_RATE = 5e-7
+        LEARNING_RATE = 5e-6
     
     else:
         raise Exception('Invalid model to train')
 
     # LOAD DATA (full; no split)
-    class_labels:List = [label.value for label in LabelsKDD1999] if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else [label.value for label in LabelsMNIST]
+    class_labels:List = [label.value for label in LabelsKDD1999str] if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else [label.value for label in LabelsMNIST]
     data:IDataset = DatasetMNIST(is_debug=True)  if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST else DatasetKDD(is_debug=True)
     dataset_train:TensorDataset = None 
     dataset_test:TensorDataset = None 
@@ -80,7 +80,7 @@ def main():
 
     print(f'''HYPERPARAMETER:
     \tModel:\t\t\t{MODEL_TO_TRAIN}
-    \tAnomaly class:\t{ANOMALY_CLASS}
+    \tAnomaly class:\t{ANOMALY_CLASS.value}
     \tEpochs:\t\t\t{NUM_EPOCHS}
     \tBatch size:\t\t{BATCH_SIZE}
     \tLearning rate:\t{LEARNING_RATE}
