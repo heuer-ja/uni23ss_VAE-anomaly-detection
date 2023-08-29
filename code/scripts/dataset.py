@@ -11,7 +11,7 @@ import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import TensorDataset
 
-from helper_classes import LabelsKDD1999, LabelsMNIST
+from helper_classes import LabelsKDD1999str, dict_kdd1999_labels, LabelsMNIST
 
 class IDataset(ABC):
 
@@ -47,9 +47,9 @@ class DatasetMNIST(IDataset):
 
     def get_data(
             self, 
-            anomaly_class:LabelsMNIST = LabelsMNIST.Two.value
+            anomaly_class:LabelsMNIST = LabelsMNIST.Two
         ) -> Tuple[TensorDataset,TensorDataset]:
-        print(f'LOADING DATA (anomaly class = {anomaly_class}):') if self.is_debug else ''
+        print(f'LOADING DATA (anomaly class = {anomaly_class.value}):') if self.is_debug else ''
 
         # Load & pre-process data
         train_dataset, test_dataset = self.load()
@@ -99,16 +99,16 @@ class DatasetMNIST(IDataset):
         "splits dataset into train (only normal) and test (normal, and anomaly) set"
 
         # add anomaly class to test
-        X_test = torch.cat([X_test, X_train[y_train == anomaly_class]], dim=0)
-        y_test = torch.cat([y_test, y_train[y_train == anomaly_class]], dim=0)
+        X_test = torch.cat([X_test, X_train[y_train == anomaly_class.value]], dim=0)
+        y_test = torch.cat([y_test, y_train[y_train == anomaly_class.value]], dim=0)
 
         # remove anomaly class from train
-        X_train = X_train[y_train != anomaly_class]
-        y_train = y_train[y_train != anomaly_class]
+        X_train = X_train[y_train != anomaly_class.value]
+        y_train = y_train[y_train != anomaly_class.value]
 
-        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class.value}.') if self.is_debug else ''
         print(f'\t\t\tlabels:\t{y_train.unique().tolist()}') if self.is_debug else ''
-        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class.value}.') if self.is_debug else ''
         print(f'\t\t\tlabels:\t{y_test.unique().tolist()}') if self.is_debug else ''
 
         return X_train, y_train, X_test, y_test
@@ -125,13 +125,16 @@ class DatasetKDD(IDataset):
         self.is_debug = is_debug
         pass 
 
-    def get_data(self, anomaly_class:LabelsKDD1999) -> [TensorDataset, TensorDataset]:
+    def get_data(self, anomaly_class:LabelsKDD1999str) -> [TensorDataset, TensorDataset]:
         print('LOADING DATA:') if self.is_debug else ''
         # Load & pre-process data (dataframe)
         df:pd.DataFrame = self.load()
         df = self.fix_dtypes(df)
         df = self.normalize(df)
         df = self.one_hot_encoding(df)
+
+        # drop all rows with Attack Type = nan
+        df = df.dropna(subset=['Attack Type'])
 
         # split into train and test
         df_train:pd.DataFrame = df.sample(frac=0.8, random_state=42)
@@ -251,31 +254,32 @@ class DatasetKDD(IDataset):
         # X to numpy
         X:np.ndarray = X.values 
 
-        # encode labels
-        label_encoder = LabelEncoder()
-        y_encoded:np.ndarray = label_encoder.fit_transform(y.values.ravel())
+        # create encoded y based on dict
+        y_encoded:np.ndarray = y.replace(dict_kdd1999_labels).values
+        print(f'\t\tEncoded labels to digits:') 
+        for key, value in dict_kdd1999_labels.items():
+            print(f'\t\t\t{key} -> {value}') if self.is_debug else ''
 
         print('\t\t(✓) casted DataFrame into X, y (y is one-hot encoded)') if self.is_debug else ''
         return X,y_encoded
-
         
     def get_anomaly_train_test(
             self,
             df_train:pd.DataFrame,
             df_test:pd.DataFrame,
-            anomaly_class:LabelsKDD1999                   
+            anomaly_class:LabelsKDD1999str                   
         ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         "splits dataset into train (only normal) and test (normal, and anomaly) set"
         
         # add anomaly class to test
-        df_test = pd.concat([df_test, df_train[df_train['Attack Type'] == anomaly_class]], ignore_index=True)
+        df_test = pd.concat([df_test, df_train[df_train['Attack Type'] == anomaly_class.value]], ignore_index=True)
 
         # remove anomaly class from train
-        df_train = df_train[df_train['Attack Type'] != anomaly_class]
+        df_train = df_train[df_train['Attack Type'] != anomaly_class.value]
 
-        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t(✓) Training set only contains NORMALS, NO ANOMALIES CLASS {anomaly_class.value}.') if self.is_debug else ''
         print(f'\t\t\tlabels:\t{df_train["Attack Type"].unique().tolist()}') if self.is_debug else ''
-        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class}.') if self.is_debug else ''
+        print(f'\t\t(✓) Test set contains NORAMLS and ANOMALY CLASS {anomaly_class.value}.') if self.is_debug else ''
         print(f'\t\t\tlabels:\t{df_test["Attack Type"].unique().tolist()}') if self.is_debug else ''
         return df_train, df_test
 
