@@ -94,7 +94,13 @@ class IVAE(nn.Module, ABC):
 
         recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
         x = x.unsqueeze(0)
-        p = recon_dist.log_prob(x).exp().mean(dim=0).mean(dim=-1)  # vector of shape [batch_size]
+
+        # calc probability, so that shape is [batch_size]
+        x_len_shape = len(x.shape)
+        p:torch.Tensor = recon_dist.log_prob(x).exp().mean(dim=0)
+        for _ in range(x_len_shape - 2):
+            p = p.mean(dim=-1)
+    
         return p
 
 class VAE_CNN(IVAE):
