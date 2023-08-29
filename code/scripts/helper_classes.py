@@ -47,9 +47,21 @@ class LabelsMNIST(int, Enum):
     Eight = 8,
     Nine = 9
 
-class LabelsKDD1999(str, Enum):
+
+
+
+class LabelsKDD1999str(str, Enum):
     Normal = 'normal',
     Probe = 'probe',
     DoS = 'dos',
     U2R = 'u2r',
     R2L = 'r2l'
+
+
+dict_kdd1999_labels = {
+    LabelsKDD1999str.Normal.value : 0,
+    LabelsKDD1999str.Probe.value : 1,
+    LabelsKDD1999str.DoS.value : 2,
+    LabelsKDD1999str.U2R.value : 3,
+    LabelsKDD1999str.R2L.value : 4
+}
