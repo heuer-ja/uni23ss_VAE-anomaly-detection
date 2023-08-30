@@ -40,11 +40,11 @@ def detect_anomalies(
     # determine alpha
     alpha:float = determine_alpha(model, loader_train, DEVICE)
 
-    y_train = loader_train.dataset.tensors[1].squeeze().to(DEVICE)
-    y_test = loader_test.dataset.tensors[1].squeeze().to(DEVICE)
+    y_train:torch.Tensor = loader_train.dataset.tensors[1].squeeze().to(DEVICE)
+    y_test:torch.Tensor  = loader_test.dataset.tensors[1].squeeze().to(DEVICE)
 
     # detect anomalies
-    anomalies_bitmask:[] = []
+    anomalies_bitmask:[torch.Tensor] = []
     for x_batch, y_batch in loader_test:        
 
         x_batch = x_batch.to(DEVICE)
