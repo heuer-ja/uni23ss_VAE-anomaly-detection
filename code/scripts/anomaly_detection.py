@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 from model import IVAE 
 
-from helper_classes import ModelToTrain, dict_kdd1999_labels
+from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 
 
 def determine_alpha(
@@ -33,7 +33,6 @@ def detect_anomalies(
         model:IVAE, 
         loader_train:DataLoader, 
         loader_test:DataLoader, 
-        class_labels:[int],
         DEVICE:str,
         model_to_train:ModelToTrain
         ) :
@@ -60,28 +59,27 @@ def detect_anomalies(
     # combine anomalies with labels
     anomalies_bitmask = torch.stack([anomalies_bitmask, y_test], dim=1)
     
-    # Distribution of classes
-    d = []
-    for c in class_labels:
-        len_train:int = len(y_train[y_train==c])
-        len_test:int = len(y_test[y_test==c])
-        len_anomalies:int = len(anomalies_bitmask[anomalies_bitmask[:,1]==c])
-        d.append({
-            'Class': c,
+    # LOGGING: Distribution of classes
+    data = []
+    classes:[] = [c for c in LabelsKDD1999] if model_to_train == ModelToTrain.FULLY_TABULAR else [c for c in LabelsMNIST]
+    for c in classes:
+        c_int:int = c.value.encoded if model_to_train == ModelToTrain.FULLY_TABULAR else c.value
+        c_label:str = c.value.label if model_to_train == ModelToTrain.FULLY_TABULAR else c.value
+
+        len_train:int = len(y_train[y_train==c_int])
+        len_test:int = len(y_test[y_test==c_int])
+        len_anomalies:int = len(anomalies_bitmask[anomalies_bitmask[:,1]==c_int])
+
+        data.append({
+            'Class': c_label,
             '#Data (Train)': len_train,
             '#Data (Test)': len_test,
             '#Normals (Test)': len_test - len_anomalies,
             '#Anomalies (Test)': len_anomalies,
         })
 
-    df:pd.DataFrame = pd.DataFrame(d)
+    df:pd.DataFrame = pd.DataFrame(data)
     df.loc['Total'] = df.sum(numeric_only=True, axis=0)
-
-    # LOGGING
-    if model_to_train == ModelToTrain.FULLY_TABULAR:
-        print(f'\tEncoded labels to digits:') 
-        for key, value in dict_kdd1999_labels.items():
-            print(f'\t\t\t{key} -> {value}') 
 
     print(df.head(11))
     return

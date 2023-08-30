@@ -50,18 +50,17 @@ class LabelsMNIST(int, Enum):
 
 
 
-class LabelsKDD1999str(str, Enum):
-    Normal = 'normal',
-    Probe = 'probe',
-    DoS = 'dos',
-    U2R = 'u2r',
-    R2L = 'r2l'
+@dataclass
+class StrIntMapping:
+    label:str
+    encoded:int
 
+class LabelsKDD1999(Enum):
+    Normal = StrIntMapping('normal', 0)
+    Probe = StrIntMapping('probe', 1)
+    DoS = StrIntMapping('dos', 2)
+    U2R = StrIntMapping('u2r', 3)
+    R2L = StrIntMapping('r2l', 4)
 
-dict_kdd1999_labels = {
-    LabelsKDD1999str.Normal.value : 0,
-    LabelsKDD1999str.Probe.value : 1,
-    LabelsKDD1999str.DoS.value : 2,
-    LabelsKDD1999str.U2R.value : 3,
-    LabelsKDD1999str.R2L.value : 4
-}
+# Iterate over LabelsKDD1999 and print all int values using list comprehension
+print([class_label.value.encoded for class_label in LabelsKDD1999])

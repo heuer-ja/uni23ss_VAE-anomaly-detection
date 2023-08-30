@@ -20,15 +20,15 @@ from torch.optim import Adam
 # own classes
 from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
-from helper_classes import LabelsKDD1999str, LabelsMNIST, ModelToTrain, dict_kdd1999_labels
+from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
 
 def main():
     # MODEL & ANOMALY CLASS
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
-    ANOMALY_CLASS = LabelsKDD1999str.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
+    ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -53,7 +53,6 @@ def main():
         raise Exception('Invalid model to train')
 
     # LOAD DATA (full; no split)
-    class_labels:[int] = [v_int for v_int in dict_kdd1999_labels.values()] if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else [label.value for label in LabelsMNIST]
     data:IDataset = DatasetMNIST(is_debug=True)  if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST else DatasetKDD(is_debug=True)
     dataset_train:TensorDataset = None 
     dataset_test:TensorDataset = None 
@@ -137,7 +136,6 @@ def main():
         loader_train=loader_train,
         loader_test=loader_test,
         DEVICE=DEVICE,
-        class_labels=class_labels,
         model_to_train=MODEL_TO_TRAIN,
     )
 
