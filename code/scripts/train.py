@@ -49,7 +49,7 @@ def train(
 
             if batch_idx % 500 == 0:
                 print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f | KL: %.4f | RecLoss: %.4f'
-                      % (epoch, num_epochs, batch_idx,
+                      % (epoch+1, num_epochs, batch_idx,
                           len(train_loader), loss, kl, recon_loss))
 
         print('Time elapsed: %.2f min' % ((time.time() - start_time)/60))
