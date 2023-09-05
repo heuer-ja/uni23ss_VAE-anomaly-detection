@@ -12,10 +12,13 @@ sys.dont_write_bytecode = True
 
 # libraries
 import os
+import numpy as np
 import torch 
 import torch.nn as nn
 from torch.utils.data import TensorDataset , DataLoader
 from torch.optim import Adam
+from torch.optim.lr_scheduler import StepLR
+
 
 # own classes
 from model import VAE_CNN, VAE_Tabular
@@ -40,9 +43,9 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
-        LEARNING_RATE = 5e-8 
+        LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
         NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
@@ -118,6 +121,8 @@ def main():
         model.parameters(), 
         lr=LEARNING_RATE,
     )
+    LR_SCHEDULER = StepLR(OPTIMIZER, step_size=5, gamma=0.1)  
+
 
     # TRAINING
     train(
@@ -125,8 +130,10 @@ def main():
         model=model, 
         num_epochs=NUM_EPOCHS ,
         optimizer=OPTIMIZER, 
+        lr_scheduler=LR_SCHEDULER,
         train_loader=loader_train,
     )
+
 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')

@@ -7,6 +7,8 @@ import torch.nn as nn
 
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import StepLR
+
 
 from helper_classes import LogTrainPreds
 from visualization import plot_train_preds
@@ -16,12 +18,13 @@ def train(
         model:nn.Module, 
         num_epochs:int, 
         optimizer:Optimizer, 
+        lr_scheduler:StepLR,
         train_loader:DataLoader, 
     ):
 
     log_train_preds:LogTrainPreds = LogTrainPreds([], [], [])
-
     start_time = time.time()
+    
     for epoch in range(num_epochs):
         model.train()
         for batch_idx, (X, _) in enumerate(train_loader):
@@ -53,6 +56,7 @@ def train(
                           len(train_loader), loss, kl, recon_loss))
 
         print('Time elapsed: %.2f min' % ((time.time() - start_time)/60))
+        lr_scheduler.step()
 
     print('Total Training Time: %.2f min' % ((time.time() - start_time)/60))
 
