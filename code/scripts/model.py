@@ -2,6 +2,7 @@ import sys
 sys.dont_write_bytecode = True
 
 # libs
+import numpy as np
 import torch 
 import torch.nn as nn
 from torch.nn.functional import softplus
@@ -56,13 +57,20 @@ class IVAE(nn.Module, ABC):
         shape:[int] = list(x.shape)
 
         # ENCODING
-        x = self.encoder(x)
+        x_encoded = self.encoder(x)
 
         # LATENT SPACE - softplus to ensure values are positive
-        latent_mu = self.latent_mu(x) 
-        latent_sigma = softplus(self.latent_sigma(x)) 
+        latent_mu = self.latent_mu(x_encoded) 
+        latent_sigma = softplus(self.latent_sigma(x_encoded)) 
+        # try catch for ValueError in case of nan values
+        try:
+            dist = Normal(latent_mu, latent_sigma)
+        except ValueError:
+            print("Error")
+            print("x", x)
+            print("x_encoded", x_encoded)
+            raise ValueError('latent_mu or latent_sigma contain nan values')
 
-        dist = Normal(latent_mu, latent_sigma)
         z = dist.rsample([self.L])  
         z = z.view(self.L * batch_size, self.latent_size) 
 
@@ -83,9 +91,10 @@ class IVAE(nn.Module, ABC):
             recon_mu=recon_mu, recon_sigma=recon_sigma)
 
     #=================[ANOMALY DETECTION]==============
-    def is_anomaly(self, x: torch.Tensor, alpha: float = 0.05) -> torch.Tensor:
+    def is_anomaly(self, x: torch.Tensor, alpha: float = 0.05):
         p = self.reconstruction_probability(x)
-        return p < alpha
+        is_ano = p < alpha
+        return is_ano, p
     
     def reconstruction_probability(self, x: torch.Tensor) -> torch.Tensor:
         x = x.float()
@@ -107,7 +116,7 @@ class VAE_CNN(IVAE):
     def __init__(
                 self,
                 io_size:int=784,
-                latent_size:int=10
+                latent_size:int=300
                 ) -> None:
         super().__init__(io_size=io_size, latent_size=latent_size)
         return 
@@ -117,9 +126,11 @@ class VAE_CNN(IVAE):
                 # ENCODER
                 encoder = nn.Sequential(
                     nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
-                    nn.ReLU(),
+                    nn.LeakyReLU(0.2),  # Leaky ReLU activation
+                    nn.BatchNorm2d(32),  # Batch normalization
                     nn.Conv2d(32, 64, kernel_size=4, stride=2, padding=1),
-                    nn.ReLU(),
+                    nn.LeakyReLU(0.2),  # Leaky ReLU activation
+                    nn.BatchNorm2d(64),  # Batch normalization
                     nn.Flatten(),
                 ),
                 # LATENT SPACE
