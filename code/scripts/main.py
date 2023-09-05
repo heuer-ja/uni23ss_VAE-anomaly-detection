@@ -27,6 +27,8 @@ from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
+from visualization import plot_train_preds, plot_mnist_orig_and_recon
+
 
 def main():
     # MODEL & ANOMALY CLASS
@@ -43,8 +45,8 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
-        BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
+        BATCH_SIZE = 16 if DEVICE == 'cpu' else 128
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
@@ -134,7 +136,20 @@ def main():
         train_loader=loader_train,
     )
 
+    # RECONSTRUCTION
+    x_to_recon, y_to_recon = next(iter(loader_train))
+    batch_reconstructions:torch.Tensor = model.reconstruct(x=x_to_recon, device=DEVICE)
+    batch_reconstructions  = batch_reconstructions.squeeze(1)
+    
+    plot_mnist_orig_and_recon(
+        batch_size=BATCH_SIZE//4, 
+        x_orig=x_to_recon, 
+        x_recon=batch_reconstructions,
+        y=y_to_recon, 
+    )
 
+
+    return 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
 
