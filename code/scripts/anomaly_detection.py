@@ -43,6 +43,8 @@ def detect_anomalies(
     y_train:torch.Tensor = loader_train.dataset.tensors[1].squeeze().to(DEVICE)
     y_test:torch.Tensor  = loader_test.dataset.tensors[1].squeeze().to(DEVICE)
 
+    max_prob:float = 0
+
     # detect anomalies
     anomalies_bitmask:[torch.Tensor] = []
     for x_batch, y_batch in loader_test:        
@@ -50,7 +52,14 @@ def detect_anomalies(
         x_batch = x_batch.to(DEVICE)
         y_batch = y_batch.to(DEVICE)
 
-        anomalies_batch:torch.Tensor = model.is_anomaly(x_batch, alpha)
+        anomalies_batch:torch.Tensor 
+        anomalies_batch, p = model.is_anomaly(x_batch, alpha)
+
+        # LOGGING: max prob
+        if p.max().item() > max_prob:
+            max_prob = p.max().item()
+            print(f'\tNew test max_recon_prob: {max_prob}')
+
         anomalies_bitmask.append(anomalies_batch)
 
     # concatenate all batches
