@@ -111,6 +111,24 @@ class IVAE(nn.Module, ABC):
             p = p.mean(dim=-1)
     
         return p
+    
+    def reconstruct(self, x: torch.Tensor, device) -> torch.Tensor:
+        '''
+        batch of input data x
+
+        returns batch of decoded data (reconstructed)
+        '''
+        x = x.float().to(device)
+
+        with torch.no_grad():
+            x_encoded = self.encoder(x)
+            latent_mu = self.latent_mu(x_encoded)
+            decoded  = self.decoder(latent_mu)
+        
+        return decoded 
+
+
+    
 
 class VAE_CNN(IVAE):
     def __init__(
