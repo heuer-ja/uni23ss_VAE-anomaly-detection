@@ -45,8 +45,8 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
-        BATCH_SIZE = 16 if DEVICE == 'cpu' else 128
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
+        BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
@@ -138,7 +138,10 @@ def main():
 
     # RECONSTRUCTION
     x_to_recon, y_to_recon = next(iter(loader_train))
-    batch_reconstructions:torch.Tensor = model.reconstruct(x=x_to_recon, device=DEVICE)
+    x_to_recon = x_to_recon.to(DEVICE)
+    y_to_recon = y_to_recon.to(DEVICE)
+
+    batch_reconstructions:torch.Tensor = model.reconstruct(x=x_to_recon)
     batch_reconstructions  = batch_reconstructions.squeeze(1)
     
     plot_mnist_orig_and_recon(

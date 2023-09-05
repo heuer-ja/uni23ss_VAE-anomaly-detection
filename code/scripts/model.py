@@ -53,6 +53,7 @@ class IVAE(nn.Module, ABC):
     
     def predict(self, x) -> dict:
         # INPUT
+        x = x.float()  # Convert input to torch.float32
         batch_size = len(x)
         shape:[int] = list(x.shape)
 
@@ -87,6 +88,7 @@ class IVAE(nn.Module, ABC):
         recon_sigma = recon_sigma.view(*view_shape)
         
         return dict(
+            decoded=decoded,
             z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
             recon_mu=recon_mu, recon_sigma=recon_sigma)
 
@@ -112,20 +114,17 @@ class IVAE(nn.Module, ABC):
     
         return p
     
-    def reconstruct(self, x: torch.Tensor, device) -> torch.Tensor:
+    def reconstruct(self, x: torch.Tensor) -> torch.Tensor:
         '''
         batch of input data x
 
         returns batch of decoded data (reconstructed)
         '''
-        x = x.float().to(device)
-
         with torch.no_grad():
-            x_encoded = self.encoder(x)
-            latent_mu = self.latent_mu(x_encoded)
-            decoded  = self.decoder(latent_mu)
-        
-        return decoded 
+            pred = self.predict(x)
+            reconstructions = pred['decoded']
+
+        return reconstructions
 
 
     
