@@ -11,7 +11,7 @@ from torch.optim.lr_scheduler import StepLR
 
 
 from helper_classes import LogTrainPreds
-from visualization import plot_train_preds
+from visualization import plot_train_preds, plot_mnist_orig_and_recon
 
 def train(
         device:str, 
@@ -27,8 +27,9 @@ def train(
     
     for epoch in range(num_epochs):
         model.train()
-        for batch_idx, (X, _) in enumerate(train_loader):
+        for batch_idx, (X, y) in enumerate(train_loader):
             X = X.to(device)
+            y = y.to(device)	
 
             # FORWARD PASS
             forward_dict:dict = model(X)
@@ -54,6 +55,19 @@ def train(
                 print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f | KL: %.4f | RecLoss: %.4f'
                       % (epoch+1, num_epochs, batch_idx,
                           len(train_loader), loss, kl, recon_loss))
+
+
+        # RECONSTRUCTION
+        print('Plot reconstruction after epoch: %d' % (epoch + 1))
+        batch_reconstructions:torch.Tensor = model.reconstruct(x=X)
+        batch_reconstructions  = batch_reconstructions.squeeze(1)
+        
+        plot_mnist_orig_and_recon(
+            batch_size=len(X) //4, 
+            x_orig=X, 
+            x_recon=batch_reconstructions,
+            y=y, 
+        )
 
         print('Time elapsed: %.2f min' % ((time.time() - start_time)/60))
         lr_scheduler.step()

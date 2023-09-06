@@ -136,22 +136,6 @@ def main():
         train_loader=loader_train,
     )
 
-    # RECONSTRUCTION
-    x_to_recon, y_to_recon = next(iter(loader_train))
-    x_to_recon = x_to_recon.to(DEVICE)
-    y_to_recon = y_to_recon.to(DEVICE)
-
-    batch_reconstructions:torch.Tensor = model.reconstruct(x=x_to_recon)
-    batch_reconstructions  = batch_reconstructions.squeeze(1)
-    
-    plot_mnist_orig_and_recon(
-        batch_size=BATCH_SIZE//4, 
-        x_orig=x_to_recon, 
-        x_recon=batch_reconstructions,
-        y=y_to_recon, 
-    )
-
-
     return 
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')

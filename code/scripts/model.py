@@ -133,13 +133,13 @@ class VAE_CNN(IVAE):
     def __init__(
                 self,
                 io_size:int=784,
-                latent_size:int=300
+                latent_size:int=15
                 ) -> None:
         super().__init__(io_size=io_size, latent_size=latent_size)
         return 
 
     def get_architecture(self)  -> ProbabilisticVAEArchitecture:
-        architecture:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
+        architecture_2layer:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
                 # ENCODER
                 encoder = nn.Sequential(
                     nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
@@ -173,7 +173,51 @@ class VAE_CNN(IVAE):
                     nn.Linear(28*28, self.io_size)
                 ),
         )
-        return architecture
+
+
+        ''' deeper architecture with 3 layers and smaller kernel size'''
+        architecture_3layer = ProbabilisticVAEArchitecture(
+            # ENCODER
+            encoder = nn.Sequential(
+                nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(32),  
+                nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(64),  
+                nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # 3x3 kernel, stride 2 for downsampling
+                nn.ReLU(),
+                nn.BatchNorm2d(128), 
+                nn.Flatten(),
+            ),
+            # LATENT SPACE
+            latent_mu=nn.Linear(128 * 14 * 14, self.latent_size),
+            latent_sigma=nn.Linear(128 * 14 * 14, self.latent_size),
+            # DECODER
+            decoder = nn.Sequential(
+                nn.Linear(self.latent_size, 128 * 14 * 14),
+                nn.Unflatten(1, (128, 14, 14)),
+                nn.ReLU(),
+                nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 4x4 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(64), 
+                nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(32),  
+                nn.ConvTranspose2d(32, 1, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.Sigmoid(),
+            ),
+            # RECONSTRUCTION
+            recon_mu=nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(28 * 28, self.io_size)
+            ),
+            recon_sigma=nn.Sequential(
+                nn.Flatten(),
+                nn.Linear(28 * 28, self.io_size)
+            ),
+        )
+        return architecture_3layer
 
 class VAE_Tabular(IVAE):
     def __init__(
