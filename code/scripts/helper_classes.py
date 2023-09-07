@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class ProbabilisticVAEArchitecture:
+class pVAEArchitecture:
     '''
     Helper class for defining the architecture of a probabilistic VAE.
     '''

@@ -10,7 +10,12 @@ from torch.distributions import Normal, kl_divergence
 from abc import ABC, abstractmethod
 
 # own classes
-from helper_classes import ProbabilisticVAEArchitecture
+from helper_classes import pVAEArchitecture
+
+
+
+
+
 
 class IpVAE(nn.Module, ABC):
     def __init__(self, 
@@ -23,7 +28,7 @@ class IpVAE(nn.Module, ABC):
         self.prior =  Normal(0,1)
         
         # architecture
-        architecture:ProbabilisticVAEArchitecture= self.get_architecture()
+        architecture:pVAEArchitecture= self.get_architecture()
         self.encoder:nn.Module =  architecture.encoder
         self.latent_mu:nn.Module = architecture.latent_mu
         self.latent_sigma:nn.Module = architecture.latent_sigma
@@ -32,7 +37,7 @@ class IpVAE(nn.Module, ABC):
         self.recon_sigma:nn.Module = architecture.recon_sigma
     
     @abstractmethod
-    def get_architecture(self)  -> ProbabilisticVAEArchitecture:
+    def get_architecture(self)  -> pVAEArchitecture:
         pass 
 
     #=================[FORWARD PASS]==============
@@ -141,8 +146,8 @@ class pVAE_CNN(IpVAE):
         super().__init__(io_size=io_size, latent_size=latent_size)
         return 
 
-    def get_architecture(self)  -> ProbabilisticVAEArchitecture:
-        architecture_2layer:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
+    def get_architecture(self)  -> pVAEArchitecture:
+        architecture_2layer:pVAEArchitecture = pVAEArchitecture(
                 # ENCODER
                 encoder = nn.Sequential(
                     nn.Conv2d(1, 32, kernel_size=4, stride=2, padding=1),
@@ -179,7 +184,7 @@ class pVAE_CNN(IpVAE):
 
 
         ''' deeper architecture with 3 layers and smaller kernel size'''
-        architecture_3layer = ProbabilisticVAEArchitecture(
+        architecture_3layer = pVAEArchitecture(
             # ENCODER
             encoder = nn.Sequential(
                 nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
@@ -231,8 +236,8 @@ class pVAE_Tabular(IpVAE):
         super().__init__(io_size=io_size, latent_size=latent_size)
         return 
 
-    def get_architecture(self)  -> ProbabilisticVAEArchitecture:
-        architecture:ProbabilisticVAEArchitecture = ProbabilisticVAEArchitecture(
+    def get_architecture(self)  -> pVAEArchitecture:
+        architecture:pVAEArchitecture = pVAEArchitecture(
             # ENCODER
             encoder = nn.Sequential(
                     nn.Linear(self.io_size // 1, self.io_size // 2, dtype=torch.float32),
