@@ -49,6 +49,8 @@ class IVAE(nn.Module, ABC):
         kl = kl_divergence(pred_result['latent_dist'], self.prior).mean(dim=0).sum()
         loss = kl - log_lik
 
+            
+
         return dict(loss=loss, kl=kl, recon_loss=log_lik, **pred_result)
     
     def predict(self, x) -> dict:
@@ -72,6 +74,7 @@ class IVAE(nn.Module, ABC):
             print("x_encoded", x_encoded)
             raise ValueError('latent_mu or latent_sigma contain nan values')
 
+        # SAMPLE FROM LATENT SPACE with repameterization trick
         z = dist.rsample([self.L])  
         z = z.view(self.L * batch_size, self.latent_size) 
 
