@@ -12,7 +12,7 @@ from abc import ABC, abstractmethod
 # own classes
 from helper_classes import ProbabilisticVAEArchitecture
 
-class IVAE(nn.Module, ABC):
+class IpVAE(nn.Module, ABC):
     def __init__(self, 
                  io_size:int,
                 latent_size:int) -> None:
@@ -132,7 +132,7 @@ class IVAE(nn.Module, ABC):
 
     
 
-class VAE_CNN(IVAE):
+class pVAE_CNN(IpVAE):
     def __init__(
                 self,
                 io_size:int=784,
@@ -222,7 +222,7 @@ class VAE_CNN(IVAE):
         )
         return architecture_3layer
 
-class VAE_Tabular(IVAE):
+class pVAE_Tabular(IpVAE):
     def __init__(
             self,
             io_size:int=121,

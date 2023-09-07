@@ -3,13 +3,13 @@ import torch.nn as nn
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from model import IVAE 
+from model import IpVAE 
 
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 
 
 def determine_alpha(
-        model:IVAE, 
+        model:nn.Module, 
         loader_train:DataLoader,
         DEVICE:str
         ) -> float:
@@ -30,7 +30,7 @@ def determine_alpha(
     return alpha
 
 def detect_anomalies(
-        model:IVAE, 
+        model:nn.Module, 
         loader_train:DataLoader, 
         loader_test:DataLoader, 
         DEVICE:str,

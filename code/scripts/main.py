@@ -21,7 +21,7 @@ from torch.optim.lr_scheduler import StepLR
 
 
 # own classes
-from model import VAE_CNN, VAE_Tabular
+from model import pVAE_CNN, pVAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
@@ -99,7 +99,7 @@ def main():
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
         # LOGGING: show data properties (shapes, img resolution)
         img_resolution = (X.shape[2], X.shape[3])
-        model:VAE_CNN = VAE_CNN(
+        model:pVAE_CNN = pVAE_CNN(
             io_size=(img_resolution[0] * img_resolution[1])
         )
 
@@ -111,7 +111,7 @@ def main():
         ''')
 
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        model:VAE_Tabular = VAE_Tabular()
+        model:pVAE_Tabular = pVAE_Tabular()
 
     else:
         raise Exception('Invalid model to train')

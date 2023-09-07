@@ -10,7 +10,7 @@ from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
 
 
-from helper_classes import LogTrainPreds
+from helper_classes import pVAELogTrain
 from visualization import plot_train_preds, plot_mnist_orig_and_recon
 
 def train(
@@ -22,7 +22,7 @@ def train(
         train_loader:DataLoader, 
     ):
 
-    log_train_preds:LogTrainPreds = LogTrainPreds([], [], [])
+    log_train_preds:pVAELogTrain = pVAELogTrain([], [], [])
     start_time = time.time()
     
     for epoch in range(num_epochs):

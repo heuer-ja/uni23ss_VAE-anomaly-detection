@@ -18,7 +18,7 @@ class ProbabilisticVAEArchitecture:
 
 
 @dataclass
-class LogTrainPreds:
+class pVAELogTrain:
     '''
     Helper class for logging training progress.
     '''

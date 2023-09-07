@@ -1,11 +1,11 @@
 import matplotlib.pyplot as plt
 import torch
 
-from helper_classes import LogTrainPreds
+from helper_classes import pVAELogTrain
 
 PATH:str = '../plots/'
 
-def plot_train_preds(log_train_pred:LogTrainPreds):
+def plot_train_preds(log_train_pred:pVAELogTrain):
     file_name:str = f'{PATH}training_progress.png'
 
     _, ax = plt.subplots(1, 3, figsize=(15, 5))
