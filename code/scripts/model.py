@@ -10,12 +10,168 @@ from torch.distributions import Normal, kl_divergence
 from abc import ABC, abstractmethod
 
 # own classes
-from helper_classes import pVAEArchitecture
+from helper_classes import VAEArchitecture, pVAEArchitecture
 
 
 
 
 
+# ================== [DETERMINISTIC / NORMAL VAE] ==================
+
+
+class IVAE(nn.Module, ABC):
+    def __init__(self, 
+                 io_size:int,
+                latent_size:int) -> None:
+        super().__init__()
+        self.io_size = io_size
+        self.latent_size = latent_size
+        self.prior =  Normal(0,1)
+        
+        # architecture
+        architecture:pVAEArchitecture= self.get_architecture()
+        self.encoder:nn.Module =  architecture.encoder
+        self.latent_mu:nn.Module = architecture.latent_mu
+        self.latent_sigma:nn.Module = architecture.latent_sigma
+        self.decoder:nn.Module = architecture.decoder
+
+    @abstractmethod
+    def get_architecture(self)  -> pVAEArchitecture:
+        pass 
+
+    #=================[FORWARD PASS]==============
+    def forward(self, x: torch.Tensor) -> dict:
+        x = x.float()  # Convert input to torch.float32
+
+        # PREDICTION
+        pred_result = self.predict(x)
+        
+        # LOSS using MSE (not KL divergence)
+        loss_mse = nn.MSELoss()(pred_result['decoded'], x)
+
+        return dict(loss=loss_mse, **pred_result)
+
+    def predict(self, x) -> dict:
+        # INPUT
+        x = x.float()  # Convert input to torch.float32
+        batch_size = len(x)
+        shape:[int] = list(x.shape)
+
+        # ENCODING
+        x_encoded = self.encoder(x)
+
+        # LATENT SPACE - softplus to ensure values are positive
+        latent_mu = self.latent_mu(x_encoded) 
+        latent_sigma = softplus(self.latent_sigma(x_encoded)) 
+
+        dist = Normal(latent_mu, latent_sigma)
+
+        # SAMPLE FROM LATENT SPACE with repameterization trick without L
+        z = dist.rsample()
+        z = z.view(batch_size, self.latent_size)
+
+        # DECODER 
+        decoded = self.decoder(z)
+
+        return dict(
+            decoded=decoded,
+            z=z, latent_dist=dist, latent_mu=latent_mu,latent_sigma=latent_sigma, 
+        )
+    
+    def reconstruct(self, x: torch.Tensor) -> torch.Tensor:
+        '''
+        batch of input data x
+
+        returns batch of decoded data (reconstructed)
+        '''
+        with torch.no_grad():
+            pred = self.predict(x)
+            reconstructions = pred['decoded']
+
+        return reconstructions
+
+
+class VAE_CNN(IVAE):
+    def __init__(
+                self,
+                io_size:int=784,
+                latent_size:int=15
+                ) -> None:
+        super().__init__(io_size=io_size, latent_size=latent_size)
+        return
+    
+    def get_architecture(self)  -> VAEArchitecture:
+        architecture_3layer = VAEArchitecture(
+            # ENCODER
+            encoder = nn.Sequential(
+                nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(32),  
+                nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(64),  
+                nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1),  # 3x3 kernel, stride 2 for downsampling
+                nn.ReLU(),
+                nn.BatchNorm2d(128), 
+                nn.Flatten(),
+            ),
+            # LATENT SPACE
+            latent_mu=nn.Linear(128 * 14 * 14, self.latent_size),
+            latent_sigma=nn.Linear(128 * 14 * 14, self.latent_size),
+            # DECODER
+            decoder = nn.Sequential(
+                nn.Linear(self.latent_size, 128 * 14 * 14),
+                nn.Unflatten(1, (128, 14, 14)),
+                nn.ReLU(),
+                nn.ConvTranspose2d(128, 64, kernel_size=4, stride=2, padding=1),  # 4x4 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(64), 
+                nn.ConvTranspose2d(64, 32, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.ReLU(),
+                nn.BatchNorm2d(32),  
+                nn.ConvTranspose2d(32, 1, kernel_size=3, stride=1, padding=1),  # 3x3 kernel
+                nn.Sigmoid(),
+            ))
+        
+        return architecture_3layer
+    
+
+class VAE_Tabular(IVAE):
+    def __init__(
+            self,
+            io_size:int=121,
+            latent_size:int=10
+            ) -> None:
+        super().__init__(io_size=io_size, latent_size=latent_size)
+        return 
+
+    def get_architecture(self)  -> VAEArchitecture:
+        architecture:VAEArchitecture = VAEArchitecture(
+            # ENCODER
+            encoder = nn.Sequential(
+                    nn.Linear(self.io_size // 1, self.io_size // 2, dtype=torch.float32),
+                    nn.ReLU(),
+                    nn.Linear(self.io_size // 2, self.io_size // 4, dtype=torch.float32),
+                    nn.ReLU()
+            ),
+            # LATENT SPACE
+            latent_mu     = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
+            latent_sigma  = torch.nn.Linear(self.io_size // 4, self.latent_size, dtype=torch.float32),
+            # DECODER
+            decoder = nn.Sequential(
+                nn.Linear(self.latent_size, self.io_size // 4, dtype=torch.float32),
+                nn.ReLU(),
+                nn.Linear(self.io_size // 4, self.io_size // 2, dtype=torch.float32),
+                nn.ReLU(),
+                nn.Linear(self.io_size // 2, self.io_size, dtype=torch.float32),
+                nn.ReLU(),
+            ),
+        )
+        return architecture
+
+    
+
+# ======================= [PROBABILISTIC VAE] =======================
 
 class IpVAE(nn.Module, ABC):
     def __init__(self, 

@@ -21,17 +21,15 @@ from torch.optim.lr_scheduler import StepLR
 
 
 # own classes
-from model import pVAE_CNN, pVAE_Tabular
+from model import VAE_CNN, VAE_Tabular, pVAE_CNN, pVAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
 
-from visualization import plot_train_preds, plot_mnist_orig_and_recon
-
-
 def main():
     # MODEL & ANOMALY CLASS
+    IS_MODEL_PROBABILISTIC = False 
     MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
     ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
@@ -45,7 +43,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
@@ -101,7 +99,7 @@ def main():
         img_resolution = (X.shape[2], X.shape[3])
         model:pVAE_CNN = pVAE_CNN(
             io_size=(img_resolution[0] * img_resolution[1])
-        )
+        ) if IS_MODEL_PROBABILISTIC else VAE_CNN(io_size=(img_resolution[0] * img_resolution[1]))
 
         print(f'''DATA SHAPE:
         Length of dataset {len}
@@ -111,7 +109,7 @@ def main():
         ''')
 
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        model:pVAE_Tabular = pVAE_Tabular()
+        model:pVAE_Tabular = pVAE_Tabular() if IS_MODEL_PROBABILISTIC else VAE_Tabular()
 
     else:
         raise Exception('Invalid model to train')
@@ -125,11 +123,11 @@ def main():
     )
     LR_SCHEDULER = StepLR(OPTIMIZER, step_size=5, gamma=0.1)  
 
-
     # TRAINING
     train(
         device=DEVICE, 
         model=model, 
+        is_model_probabilistic = IS_MODEL_PROBABILISTIC, 
         num_epochs=NUM_EPOCHS ,
         optimizer=OPTIMIZER, 
         lr_scheduler=LR_SCHEDULER,

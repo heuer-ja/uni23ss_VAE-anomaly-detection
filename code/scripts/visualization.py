@@ -1,11 +1,29 @@
 import matplotlib.pyplot as plt
 import torch
 
-from helper_classes import pVAELogTrain
+from helper_classes import pVAELogTrain, VAELogTrain
 
 PATH:str = '../plots/'
 
-def plot_train_preds(log_train_pred:pVAELogTrain):
+def plot_VAE_train_pred(log_train_pred:VAELogTrain):
+    log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
+
+    file_name:str = f'{PATH}training_progress.png'
+
+    _, ax = plt.subplots(1, 1, figsize=(5, 5))
+    ax.plot(log_train_pred.loss)
+    ax.set_title('Loss')
+    
+    print(f'Plotting training progress in {file_name}\n')
+    plt.savefig(file_name)
+    return
+
+
+def plot_pVAE_train_pred(log_train_pred:pVAELogTrain):
+    log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
+    log_train_pred.kl = torch.stack(log_train_pred.kl).cpu().detach().numpy()
+    log_train_pred.recon_loss = torch.stack(log_train_pred.recon_loss).cpu().detach().numpy()
+
     file_name:str = f'{PATH}training_progress.png'
 
     _, ax = plt.subplots(1, 3, figsize=(15, 5))
