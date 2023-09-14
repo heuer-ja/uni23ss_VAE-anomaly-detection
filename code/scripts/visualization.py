@@ -1,17 +1,26 @@
 import matplotlib.pyplot as plt
 import torch
 
-from helper_classes import pVAELogTrain, VAELogTrain
+from helper_classes import VAELogTrain
 
 PATH:str = '../plots/'
 
-def plot_VAE_train_pred(log_train_pred:VAELogTrain):
+
+def plot_train_pred(log_train_pred:VAELogTrain, is_probabilistic:bool):
+    if is_probabilistic:
+        _plot_pVAE_train_pred(log_train_pred)
+    else:
+        _plot_VAE_train_pred(log_train_pred)
+    return
+
+
+def _plot_VAE_train_pred(log_train_pred:VAELogTrain):
     log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
 
     file_name:str = f'{PATH}training_progress.png'
 
     _, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.plot(log_train_pred.loss)
+    ax.scatter(range(len(log_train_pred.loss)), log_train_pred.loss, s=1)
     ax.set_title('Loss')
     
     print(f'Plotting training progress in {file_name}\n')
@@ -19,7 +28,7 @@ def plot_VAE_train_pred(log_train_pred:VAELogTrain):
     return
 
 
-def plot_pVAE_train_pred(log_train_pred:pVAELogTrain):
+def _plot_pVAE_train_pred(log_train_pred:VAELogTrain):
     log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
     log_train_pred.kl = torch.stack(log_train_pred.kl).cpu().detach().numpy()
     log_train_pred.recon_loss = torch.stack(log_train_pred.recon_loss).cpu().detach().numpy()
@@ -27,13 +36,14 @@ def plot_pVAE_train_pred(log_train_pred:pVAELogTrain):
     file_name:str = f'{PATH}training_progress.png'
 
     _, ax = plt.subplots(1, 3, figsize=(15, 5))
-    ax[0].plot(log_train_pred.loss)
+
+    #turn into scatter plot 
+    ax[0].scatter(range(len(log_train_pred.loss)), log_train_pred.loss, s=1)
     ax[0].set_title('Loss')
-    ax[1].plot(log_train_pred.kl)
+    ax[1].scatter(range(len(log_train_pred.kl)), log_train_pred.kl, s=1)
     ax[1].set_title('KL')
-    ax[2].plot(log_train_pred.recon_loss)
-    ax[2].set_title('Recon Loss')
-    
+    ax[2].scatter(range(len(log_train_pred.recon_loss)), log_train_pred.recon_loss, s=1)
+    ax[2].set_title('Reconstruction Loss')
 
     print(f'Plotting training progress in {file_name}\n')
     plt.savefig(file_name)
