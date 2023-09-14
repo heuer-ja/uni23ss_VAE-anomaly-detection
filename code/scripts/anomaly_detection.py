@@ -3,7 +3,7 @@ import torch.nn as nn
 import pandas as pd
 from torch.utils.data import DataLoader
 
-from model import IpVAE 
+from model import IVAE 
 
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 

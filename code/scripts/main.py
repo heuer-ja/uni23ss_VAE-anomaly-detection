@@ -5,9 +5,6 @@
 
 
 import sys
-from typing import List
-
-
 sys.dont_write_bytecode = True
 
 # libraries
@@ -21,7 +18,7 @@ from torch.optim.lr_scheduler import StepLR
 
 
 # own classes
-from model import VAE_CNN, VAE_Tabular, pVAE_CNN, pVAE_Tabular
+from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
@@ -30,7 +27,7 @@ from anomaly_detection import detect_anomalies
 def main():
     # MODEL & ANOMALY CLASS
     IS_MODEL_PROBABILISTIC = False 
-    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
+    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
     ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
@@ -43,14 +40,14 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
-        LEARNING_RATE = 5e-6
+        LEARNING_RATE = 1e-4
     
     else:
         raise Exception('Invalid model to train')
@@ -97,9 +94,10 @@ def main():
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
         # LOGGING: show data properties (shapes, img resolution)
         img_resolution = (X.shape[2], X.shape[3])
-        model:pVAE_CNN = pVAE_CNN(
+        model:VAE_CNN = VAE_CNN(
+            is_probabilistic=IS_MODEL_PROBABILISTIC,
             io_size=(img_resolution[0] * img_resolution[1])
-        ) if IS_MODEL_PROBABILISTIC else VAE_CNN(io_size=(img_resolution[0] * img_resolution[1]))
+        )
 
         print(f'''DATA SHAPE:
         Length of dataset {len}
@@ -109,7 +107,7 @@ def main():
         ''')
 
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        model:pVAE_Tabular = pVAE_Tabular() if IS_MODEL_PROBABILISTIC else VAE_Tabular()
+        model:VAE_Tabular = VAE_Tabular(is_probabilistic=IS_MODEL_PROBABILISTIC) 
 
     else:
         raise Exception('Invalid model to train')
@@ -125,8 +123,9 @@ def main():
 
     # TRAINING
     train(
-        device=DEVICE, 
         model=model, 
+        model_to_train=MODEL_TO_TRAIN,
+        device=DEVICE, 
         is_model_probabilistic = IS_MODEL_PROBABILISTIC, 
         num_epochs=NUM_EPOCHS ,
         optimizer=OPTIMIZER, 

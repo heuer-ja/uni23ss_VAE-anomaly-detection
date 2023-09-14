@@ -8,15 +8,16 @@ import torch.nn as nn
 from torch.optim import Optimizer
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import StepLR
-from model import VAE_CNN, VAE_Tabular, pVAE_CNN, pVAE_Tabular
+from model import IVAE
 
 
-from helper_classes import ModelToTrain, VAELogTrain, pVAELogTrain
-from visualization import plot_VAE_train_pred, plot_pVAE_train_pred, plot_mnist_orig_and_recon
+from helper_classes import ModelToTrain, VAELogTrain
+from visualization import plot_train_pred, plot_mnist_orig_and_recon
 
 def train(
+        model:IVAE, 
+        model_to_train:ModelToTrain,
         device:str, 
-        model:nn.Module, 
         is_model_probabilistic:bool,
         num_epochs:int, 
         optimizer:Optimizer, 
@@ -25,7 +26,11 @@ def train(
     ):
 
     # LOGGING
-    log_train_preds:VAELogTrain = pVAELogTrain([], [], []) if is_model_probabilistic else VAELogTrain([])
+    log_train_preds:VAELogTrain = VAELogTrain(
+        loss=[], 
+        kl=[] if is_model_probabilistic else None,
+        recon_loss=[] if is_model_probabilistic else None
+        )
 
     start_time = time.time()
     
@@ -64,17 +69,17 @@ def train(
                         % (epoch+1, num_epochs, batch_idx,
                             len(train_loader), loss))
                 
-        # RECONSTRUCTION
-        print('Plot reconstruction after epoch: %d' % (epoch + 1))
-        batch_reconstructions:torch.Tensor = model.reconstruct(x=X)
-        batch_reconstructions  = batch_reconstructions.squeeze(1)
-        
-        plot_mnist_orig_and_recon(
-            batch_size=len(X) //4, 
-            x_orig=X, 
-            x_recon=batch_reconstructions,
-            y=y, 
-        )
+        # RECONSTRUCTION PLOT
+        if model_to_train == ModelToTrain.CNN_MNIST:
+            print('Plot reconstruction after epoch: %d' % (epoch + 1))
+            batch_reconstructions:torch.Tensor = model.reconstruct(x=X)
+            batch_reconstructions  = batch_reconstructions.squeeze(1)
+            plot_mnist_orig_and_recon(
+                    batch_size=len(X) //4, 
+                    x_orig=X, 
+                    x_recon=batch_reconstructions,
+                    y=y, 
+                ) 
 
         print('Time elapsed: %.2f min' % ((time.time() - start_time)/60))
         lr_scheduler.step()
@@ -82,7 +87,7 @@ def train(
     print('Total Training Time: %.2f min' % ((time.time() - start_time)/60))
 
     # PLOT TRAINING PROGRESS
-    plot_pVAE_train_pred(log_train_preds) if is_model_probabilistic else plot_VAE_train_pred(log_train_preds)
+    plot_train_pred(log_train_preds, is_model_probabilistic)
     return 
 
 
