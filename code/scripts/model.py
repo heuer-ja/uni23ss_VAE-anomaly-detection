@@ -8,11 +8,11 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn.functional import softplus
 from torch.distributions import Normal, kl_divergence
+from torch.nn.functional import binary_cross_entropy
 from abc import ABC, abstractmethod
 
 # own classes
 from helper_classes import VAEArchitecture
-
 
 class IVAE(nn.Module, ABC):
     def __init__(self, 
@@ -275,11 +275,6 @@ class VAE_Tabular(IVAE):
                 nn.Linear(self.latent_size, self.io_size // 4, dtype=torch.float32),
                 nn.ReLU(),
                 nn.Linear(self.io_size // 4, self.io_size // 2, dtype=torch.float32),
-                nn.ReLU() 
-            ) if self.is_probabilistic else nn.Sequential(
-                nn.Linear(self.latent_size, self.io_size // 4, dtype=torch.float32),
-                nn.ReLU(),
-                nn.Linear(self.io_size // 4, self.io_size // 2, dtype=torch.float32),
                 nn.ReLU(),
                 nn.Linear(self.io_size // 2, self.io_size, dtype=torch.float32),
                 nn.ReLU(),
@@ -287,10 +282,10 @@ class VAE_Tabular(IVAE):
 
             # RECONSTRUCTION
             recon_mu     = None if not self.is_probabilistic else nn.Linear(
-                self.io_size // 2, self.io_size // 1, dtype=torch.float32
+                self.io_size // 1, self.io_size // 1, dtype=torch.float32
             ),
             recon_sigma  = None if not self.is_probabilistic else nn.Linear(
-                self.io_size // 2, self.io_size // 1, dtype=torch.float32
+                self.io_size // 1, self.io_size // 1, dtype=torch.float32
             )
         )
         return architecture

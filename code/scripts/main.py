@@ -26,7 +26,7 @@ from anomaly_detection import detect_anomalies
 
 def main():
     # MODEL & ANOMALY CLASS
-    IS_MODEL_PROBABILISTIC = False 
+    IS_MODEL_PROBABILISTIC = False
     MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
     ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
@@ -47,7 +47,7 @@ def main():
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
         NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
-        LEARNING_RATE = 1e-4
+        LEARNING_RATE = 1e-5
     
     else:
         raise Exception('Invalid model to train')
