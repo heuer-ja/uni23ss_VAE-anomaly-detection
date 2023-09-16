@@ -117,7 +117,16 @@ class IVAE(nn.Module, ABC):
 
         # normal/deterministic VAE
         else:
-            loss = nn.MSELoss()(pred_result['decoded'], x)
+            recon_x:Tensor = pred_result['decoded']	
+            posterior:Normal = pred_result['latent_dist']
+
+            # LOSS
+            recon_loss = binary_cross_entropy(recon_x, x, reduction='sum')
+            kl = kl_divergence(posterior, self.prior).sum()
+            loss = kl + recon_loss
+
+            loss_dict['kl'] = kl
+            loss_dict['recon_loss'] = recon_loss
             loss_dict['loss'] = loss
 
         return loss_dict

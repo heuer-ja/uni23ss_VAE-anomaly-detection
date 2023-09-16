@@ -18,7 +18,6 @@ def train(
         model:IVAE, 
         model_to_train:ModelToTrain,
         device:str, 
-        is_model_probabilistic:bool,
         num_epochs:int, 
         optimizer:Optimizer, 
         lr_scheduler:StepLR,
@@ -28,9 +27,9 @@ def train(
     # LOGGING
     log_train_preds:VAELogTrain = VAELogTrain(
         loss=[], 
-        kl=[] if is_model_probabilistic else None,
-        recon_loss=[] if is_model_probabilistic else None
-        )
+        kl=[] ,
+        recon_loss=[] 
+    )
 
     start_time = time.time()
     
@@ -55,19 +54,14 @@ def train(
 
             # LOGGING
             log_train_preds.loss.append(loss)
-            if is_model_probabilistic:
-                log_train_preds.kl.append(forward_dict['kl'])
-                log_train_preds.recon_loss.append(forward_dict['recon_loss'])
+            log_train_preds.kl.append(forward_dict['kl'])
+            log_train_preds.recon_loss.append(forward_dict['recon_loss'])
 
             if batch_idx % 500 == 0:
-                if is_model_probabilistic:
-                    print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f | KL: %.4f | RecLoss: %.4f'
-                      % (epoch+1, num_epochs, batch_idx,
-                          len(train_loader), loss, forward_dict['kl'], forward_dict['recon_loss']))
-                else:
-                    print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f'
-                        % (epoch+1, num_epochs, batch_idx,
-                            len(train_loader), loss))
+                print('Epoch: %03d/%03d | Batch %04d/%04d | Loss: %.4f | KL: %.4f | RecLoss: %.4f'
+                    % (epoch+1, num_epochs, batch_idx,
+                        len(train_loader), loss, forward_dict['kl'], forward_dict['recon_loss']))
+
                 
         # RECONSTRUCTION PLOT
         if model_to_train == ModelToTrain.CNN_MNIST:
@@ -87,7 +81,7 @@ def train(
     print('Total Training Time: %.2f min' % ((time.time() - start_time)/60))
 
     # PLOT TRAINING PROGRESS
-    plot_train_pred(log_train_preds, is_model_probabilistic)
+    plot_train_pred(log_train_preds)
     return 
 
 

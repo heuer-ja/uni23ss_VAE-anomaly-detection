@@ -6,29 +6,7 @@ from helper_classes import VAELogTrain
 PATH:str = '../plots/'
 
 
-def plot_train_pred(log_train_pred:VAELogTrain, is_probabilistic:bool):
-    if is_probabilistic:
-        _plot_pVAE_train_pred(log_train_pred)
-    else:
-        _plot_VAE_train_pred(log_train_pred)
-    return
-
-
-def _plot_VAE_train_pred(log_train_pred:VAELogTrain):
-    log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
-
-    file_name:str = f'{PATH}training_progress.png'
-
-    _, ax = plt.subplots(1, 1, figsize=(5, 5))
-    ax.scatter(range(len(log_train_pred.loss)), log_train_pred.loss, s=1)
-    ax.set_title('Loss')
-    
-    print(f'Plotting training progress in {file_name}\n')
-    plt.savefig(file_name)
-    return
-
-
-def _plot_pVAE_train_pred(log_train_pred:VAELogTrain):
+def plot_train_pred(log_train_pred:VAELogTrain):
     log_train_pred.loss = torch.stack(log_train_pred.loss).cpu().detach().numpy()
     log_train_pred.kl = torch.stack(log_train_pred.kl).cpu().detach().numpy()
     log_train_pred.recon_loss = torch.stack(log_train_pred.recon_loss).cpu().detach().numpy()

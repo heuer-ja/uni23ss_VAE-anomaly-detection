@@ -26,7 +26,7 @@ from anomaly_detection import detect_anomalies
 
 def main():
     # MODEL & ANOMALY CLASS
-    IS_MODEL_PROBABILISTIC = False
+    IS_MODEL_PROBABILISTIC = True
     MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
     ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
@@ -40,7 +40,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
@@ -126,7 +126,6 @@ def main():
         model=model, 
         model_to_train=MODEL_TO_TRAIN,
         device=DEVICE, 
-        is_model_probabilistic = IS_MODEL_PROBABILISTIC, 
         num_epochs=NUM_EPOCHS ,
         optimizer=OPTIMIZER, 
         lr_scheduler=LR_SCHEDULER,
