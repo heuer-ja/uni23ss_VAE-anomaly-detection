@@ -24,7 +24,6 @@ class IVAE(nn.Module, ABC):
         self.is_probabilistic = is_probabilistic # determines whether VAE is probabilistic or not
         self.io_size = io_size
         self.latent_size = latent_size
-        self.L = 10 #  Number of samples in the latent space to detect the anomaly.
         self.prior =  Normal(0,1)
         
         # architecture
@@ -70,13 +69,8 @@ class IVAE(nn.Module, ABC):
         dist = Normal(latent_mu, latent_sigma)
 
         # SAMPLE FROM LATENT SPACE with repameterization trick 
-        z = None 
-        if self.is_probabilistic:
-            z = dist.rsample([self.L])  
-            z = z.view(self.L * batch_size, self.latent_size) 
-        else:
-            z = dist.rsample()
-            z = z.view(batch_size, self.latent_size)
+        z = dist.rsample()
+        z = z.view(batch_size, self.latent_size)
     
         # DECODER 
         decoded = self.decoder(z)
@@ -88,14 +82,6 @@ class IVAE(nn.Module, ABC):
         if self.is_probabilistic:
             recon_mu = self.recon_mu(decoded)
             recon_sigma = softplus(self.recon_sigma(decoded))
-
-            # reshape to [L, batch_size, io_size]
-            #   - KDD1999 (tabular) [10, 128, 121]       
-            #   - MNIST   (image)   [10, 128, 1, 28, 28] 
-            view_shape:[int] = [self.L, *shape]
-            recon_mu = recon_mu.view(*view_shape)       
-            recon_sigma = recon_sigma.view(*view_shape)
-
 
         return dict(
             latent_sigma=latent_sigma, 
@@ -111,15 +97,20 @@ class IVAE(nn.Module, ABC):
 
         # probablistic VAE
         if self.is_probabilistic:
-            x = x.unsqueeze(0)  # unsqueeze to broadcast input across sample dimension (L)
 
-            # LOSS
-            log_lik = Normal(pred_result['recon_mu'], pred_result['recon_sigma']).log_prob(x).mean(
-                dim=0)  # average over sample dimension
-            log_lik = log_lik.mean(dim=0).sum()
-            kl = kl_divergence(pred_result['latent_dist'], self.prior).mean(dim=0).sum()
+            # Distributions
+            dist_latent:Normal = pred_result['latent_dist']
+            dist_recon:Normal = Normal(pred_result['recon_mu'], pred_result['recon_sigma'])
+                        
+            # reshape x to match dist_recon.scale.shape
+            x = x.view(dist_recon.scale.shape) # [batch_size, 784] | [batch_size, 121]
+
+            # .log_prob(x) [batch_size, 784] | [batch_size, 121] -> mean() [784] | [121] -> sum()/mean single value
+            log_lik = dist_recon.log_prob(x).mean(dim=0).sum() # mean or sum or ?
+            
+            kl = kl_divergence(dist_latent, self.prior).mean(dim=0).sum() # single value
+
             loss = kl - log_lik
-
             loss_dict['kl'] = kl
             loss_dict['recon_loss'] = log_lik
             loss_dict['loss'] = loss

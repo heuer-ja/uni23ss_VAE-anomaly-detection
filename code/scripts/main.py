@@ -27,7 +27,7 @@ from anomaly_detection import detect_anomalies
 def main():
     # MODEL & ANOMALY CLASS
     IS_MODEL_PROBABILISTIC = False
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
     ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
@@ -45,7 +45,7 @@ def main():
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
         LEARNING_RATE = 1e-5
     
