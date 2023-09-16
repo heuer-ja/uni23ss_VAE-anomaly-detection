@@ -24,6 +24,10 @@ class IDataset(ABC):
         pass 
 
     @abstractclassmethod
+    def normalize(self):
+        pass 
+
+    @abstractclassmethod
     def to_tensor_dataset(self) -> TensorDataset:
         pass
 
@@ -60,6 +64,9 @@ class DatasetMNIST(IDataset):
             X_train, y_train, 
             X_test, y_test, 
             anomaly_class=anomaly_class)
+    
+        # normalize pixel range from [0,255] to [0,1]
+        X_train, X_test = self.normalize(X_train, X_test)
 
         # convert to TensorDataset
         dataset_train:TensorDataset = self.to_tensor_dataset(X_train, y_train) 
@@ -68,7 +75,6 @@ class DatasetMNIST(IDataset):
         print('\t\t(✓) loaded data\n') if self.is_debug else ''
         return dataset_train, dataset_test
     
-
     def load(self) -> Tuple[torch.utils.data.Dataset, torch.utils.data.Dataset]:
         transform = transforms.Compose([
             transforms.ToTensor(),
@@ -86,7 +92,18 @@ class DatasetMNIST(IDataset):
         X = X.view(-1, 1, 28, 28)  # Reshape to [batch_size, channels, height, width]
         print('\t\t(✓) reshaped X for train/test') if self.is_debug else ''
         return X,y
-    
+
+    def normalize(self, X_train:np.ndarray, X_test:np.ndarray) -> Tuple[np.ndarray,np.ndarray]:
+        '''normalizes pixel range from [0,255] to [0,1]'''
+
+
+        X_train_new = X_train / 255
+        X_test_new = X_test / 255
+
+        print(f'\t\t(✓) normalized pixel range from [{X_train.min()}, {X_train.max()}] to[{X_train_new.min()}, {X_train_new.max()}]') if self.is_debug else ''
+
+        return X_train_new, X_test_new
+
 
     def get_anomaly_train_test(self, 
                 X_train:np.ndarray,
