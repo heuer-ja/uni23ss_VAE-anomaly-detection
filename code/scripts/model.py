@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch import Tensor
 from torch.nn.functional import softplus
 from torch.distributions import Normal, kl_divergence
-from torch.nn.functional import binary_cross_entropy
+from torch.nn.functional import binary_cross_entropy, mse_loss
 from abc import ABC, abstractmethod
 
 # own classes
@@ -121,7 +121,7 @@ class IVAE(nn.Module, ABC):
             posterior:Normal = pred_result['latent_dist']
 
             # LOSS
-            recon_loss = binary_cross_entropy(recon_x, x, reduction='sum')
+            recon_loss = mse_loss(recon_x, x, reduction='sum')
             kl = kl_divergence(posterior, self.prior).sum()
             loss = kl + recon_loss
 
