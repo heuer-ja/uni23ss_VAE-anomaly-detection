@@ -147,41 +147,51 @@ class IVAE(nn.Module, ABC):
 
     #=================[ANOMALY DETECTION]==============
     def is_anomaly(self, x: Tensor, alpha: float = 0.05):
-        p = self.reconstruction_probability(x)
-        is_ano = p < alpha
-        return is_ano, p
-
-    def reconstruction_error(self, x: Tensor) -> Tensor:
-        '''used for deterministic VAE to detect anomalies'''
-        x = x.float()
+        '''
+            case 1: pVAE anomaly if recon_prob  < alpha
+            case 2: dVAE anomaly if recon_error > alpha
+        '''
+        # predict
         with torch.no_grad():
-            pred = self.predict(x)
-        
-        x = x.unsqueeze(0)
-        # calc error, so that shape is [batch_size]
-        x_len_shape = len(x.shape)
-        error:Tensor = nn.MSELoss()(pred['decoded'], x).mean(dim=0)
-        for _ in range(x_len_shape - 2):
-            error = error.mean(dim=-1)
+            pred:dict = self.predict(x)
 
-        return error
+        # Probabilistic VAE (pVAE)
+        if self.is_probabilistic:
+            # Compute the reconstruction probability for each instance in the batch
+            recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
+            x = x.unsqueeze(0)  # Add an extra dimension to match the batch size
+            x_len_shape = len(x.shape)
+            
+            # Calculate the log probabilities and take the exponential
+            log_probs = recon_dist.log_prob(x).exp()
+            
+            # Compute the mean along dimensions other than the batch dimension
+            for _ in range(x_len_shape - 2):
+                log_probs = log_probs.mean(dim=-1)
 
-    def reconstruction_probability(self, x: Tensor) -> Tensor:
-        '''used for probabilistic VAE to detect anomalies'''
-        x = x.float()
-        with torch.no_grad():
-            pred = self.predict(x)
+            # Sum over the remaining dimension to get the individual instance probabilities
+            recon_prob = log_probs.sum(dim=-1)
 
-        recon_dist = Normal(pred['recon_mu'], pred['recon_sigma'])
-        x = x.unsqueeze(0)
+            # Determine if each instance is an anomaly based on the threshold (alpha)
+            is_ano = recon_prob < alpha
+            return is_ano, recon_prob
 
-        # calc probability, so that shape is [batch_size]
-        x_len_shape = len(x.shape)
-        p:Tensor = recon_dist.log_prob(x).exp().mean(dim=0)
-        for _ in range(x_len_shape - 2):
-            p = p.mean(dim=-1)
-    
-        return p
+        # Deterministic VAE (dVAE)
+        else:
+            # Calculate the reconstruction error for each instance in the batch using MSE
+            recon_x = pred['decoded']
+            
+            # Compute the MSE error for each instance
+            mse_error = mse_loss(recon_x, x, reduction='sum')
+            
+            # Compute the mean along dimensions other than the batch dimension
+            for _ in range(len(mse_error.shape) - 1):
+                mse_error = mse_error.mean(dim=-1)
+
+            # Determine if each instance is an anomaly based on the threshold (alpha)
+            is_ano = mse_error > alpha
+            return is_ano, mse_error
+       
 
 class VAE_CNN(IVAE):
     def __init__(
