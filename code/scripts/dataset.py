@@ -234,18 +234,26 @@ class DatasetKDD(IDataset):
         return df
 
     def normalize(self, df:pd.DataFrame)-> pd.DataFrame:
-        '''standardization of numerical values (mean = 0, std. dev. = 1)'''
+        '''Normalize numerical values into [0, 1] range using Min-Max scaling.'''
+     
+        # Get numerical columns
+        df_numerical = df.select_dtypes(include=[float, int])
+        
+        # Normalize using Min-Max scaling handling division by zero
+        min_max_scaler = lambda x: (x - x.min()) / (x.max() - x.min()) if (x.max() - x.min()) != 0 else x
+        df_normalized = df_numerical.apply(min_max_scaler)
+        
+        # Combine the normalized numerical columns with the non-numerical columns
+        df[df_normalized.columns] = df_normalized
 
-        # Select numerical columns
-        numerical_cols = df.select_dtypes(include=[float, int]).columns
+        # Print min and max values for each numerical columns
+        for col in df_normalized.columns:
+            print(f'\t\t\t{col}: [{df_normalized[col].min()}, {df_normalized[col].max()}]') if self.is_debug else ''
 
-        # Perform standardization
-        scaler = StandardScaler(with_mean=True, with_std=True)
-        df_standardized = df.copy()
-        df_standardized[numerical_cols] = scaler.fit_transform(df[numerical_cols])
-        print('\t\t(✓) standardization of numerical values (mean = 0, std. dev. = 1)') if self.is_debug else ''
+        print('\t\t(✓) normalized numerical columns into [0, 1] range') if self.is_debug else ''
+        return df
 
-        return df_standardized
+        
 
     def one_hot_encoding(self,df:pd.DataFrame)-> pd.DataFrame:
         ### Remove y-variables for one-hot-encoding
