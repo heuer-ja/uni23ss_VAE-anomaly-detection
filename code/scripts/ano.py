@@ -16,6 +16,7 @@ def detect_alpha2(
     # 2b. if VAE is deterministic: take max loss (highest reconstruction error)
 
 
+    print(f"\tDetecting alpha (threshold).\n\tModel is {'PROBABILISTIC' if model.is_probabilistic else 'DETERMINISTIC'}, so alpha is {'MIN' if model.is_probabilistic else 'MAX'} loss {'(i.e., recon. prob.)' if model.is_probabilistic else '(i.e., recon. error)'} of all TRAINING instances")
     alpha:float = 1e10 if model.is_probabilistic else 0
 
     for x_batch, _ in loader_train:
@@ -33,11 +34,11 @@ def detect_alpha2(
         if model.is_probabilistic:
             if temp_alpha < alpha:
                 alpha = temp_alpha
-                print(f'\tNew alpha: {alpha}')
+                print(f'\t\tNew alpha: {alpha}')
         else:   
             if temp_alpha > alpha:
                 alpha = temp_alpha
-                print(f'\tNew alpha: {alpha}')
+                print(f'\t\tNew alpha: {alpha}')
 
-    print(f'\tFinal Alpha: {alpha}\n')
+    print(f'\t\tFinal Alpha: {alpha}\n')
     return alpha
