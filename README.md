@@ -29,13 +29,38 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
         (x) add anomaly class to test
         (x) return X (only normals), and y (normals & anomalies)
 
-(~) Anomaly detection
-    (x) implement anomaly detection
-    (x) choose alpha - log all recon. probs. and choose max            
-    (x) combine anomalies with label
-        (x) BUG: MNIST nutzt bisher die Pixel (0-255) als Anomaly anstatt die Klassen (0-9)
-        (x) BUG: KDD nutzt int für labels, da one-hot encoding, nicht str so wie ich es nutze
-!!! (o) BUG: all instances are considered as anomalies 
+(x) Implemenet normal VAE
+    (x) main.py anpassen an normal VAE
+    (x) visualazation.py anpassen an normal VAE
+    (FAIL) dVAE need to use L
+    (x) delete self.L 
+    (x) update loss in dVAE: KL divergence + MSE or CrossEntropy
+
+
+----------------------------------
+(TODO) Anomaly detection
+    1. detect_alpha  -- based on training data (after training) and NORMAL LOSS function
+    2. detect_anomalies -- based on test data (after training) and NORMAL LOSS function
+
+    --> muss nicht in model.py, kann aber
+    --> aktuell doppelt gemoppelt, da in model.py und anomaly_detection.py 
+
+BUUUUG: Alle Instances eines Batches haben gleichen Loss, rip! 
+        Grund: get_loss() returnt avg. loss (ein float, kein tensor)
+
+        Lösung: in model.py 
+
+        - erstelle:  def get_loss_of_instance(): Tensor
+        - erstelle:  def get_loss_of_batch():float die get_loss_of_instance() aufruft und avg() oder sum()
+                   -> äquivalent zum aktuellen get_loss(), die dadurch ersetzt wird
+        
+        - nutze get_loss_of_batch() in train()
+        - nutze get_loss_of_instances in anomaly_detection.py
+
+        + bitte in DOC String schreiben, dass eine durchschnitts-loss und eine isntance-loss berechnet
+
+----------------------------------
+
 
 (~) Evaluation
     (x) log all dictonaries (loss, etc.)
@@ -49,12 +74,7 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (o) plot top 5 anomalies (e. g., images)
     (o) plot top 5 normals (e. g., images)
 
----------------------------------------
-(o) BUGFIX: 
-    (o) TRAINING:
-        (o) Ergebnisse Schrott! Erstmal das fixen      
-        (o) nan loss when lr too high
-            - batchnorm hilft
 
-    (o) ANOM. DETECT:   all instances are considered as anomalies 
-            - vermutlich weil Netzwerk nicht lernt und die max_alpha genommen wird während training, die dann wsh. random ist. Da Training mehr Instanzen hat, kann Testset solch eine random recon_prob nicht erreichen
+
+
+
