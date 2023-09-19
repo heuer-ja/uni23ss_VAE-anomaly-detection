@@ -27,7 +27,7 @@ from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
-from evaluation import plot_roc_curve
+from evaluation import get_auc
 
 def main():
     # MODEL & ANOMALY CLASS
@@ -171,13 +171,16 @@ def main():
 
 
     # EVALUATION
-    plot_roc_curve(
+    auc:float = get_auc(
         model=model,
         loader_test=loader_test,
         device=DEVICE,
         anomaly_class=ANOMALY_CLASS,
         model_to_train=MODEL_TO_TRAIN,
+        plot_roc=True,
     )
+    
+    print(f'\t\tAUC value = {auc.round(3)}\n')
 
     # ANOMALY DETECTION
     #print('ANOMALY DETECTION')

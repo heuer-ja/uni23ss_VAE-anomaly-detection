@@ -20,7 +20,6 @@ def get_test_data_loss(
         device:str,
 
     ) -> pd.DataFrame:
-    print('EVALLUATION')
     model.eval()
     
     df:pd.DataFrame = pd.DataFrame(
@@ -56,13 +55,15 @@ def get_test_data_loss(
     return df
 
 
-def plot_roc_curve(
+def get_auc(
         model:IVAE,
         loader_test:DataLoader,
         device:str,
         anomaly_class:Enum,
         model_to_train:ModelToTrain,
+        plot_roc:bool = True,
     )-> None:
+    print('EVALLUATION:')
 
     # test data loss
     df:pd.DataFrame = get_test_data_loss(
@@ -84,20 +85,20 @@ def plot_roc_curve(
 
     # calc auc
     auc_score = auc(fpr, tpr)
-
+    
     # plot
-    dataset_name = "mnist" if model_to_train == ModelToTrain.CNN_MNIST else "kdd"
-    directory = f'roc_{dataset_name}'
-    file_name:str = f'{PATH}{directory}/roc_anomaly-class-{anomaly_class_label}.png'
+    if plot_roc:
+        dataset_name = "mnist" if model_to_train == ModelToTrain.CNN_MNIST else "kdd"
+        directory = f'roc_{dataset_name}'
+        file_name:str = f'{PATH}{directory}/roc_anomaly-class-{anomaly_class_label}.png'
 
-    print(file_name)
+        plt.figure()
+        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(auc_score))
+        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+        plt.title('ROC curve')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.legend(loc="lower right")
+        plt.savefig(file_name)
 
-    plt.figure()
-    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(auc_score))
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.title('ROC curve')
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.legend(loc="lower right")
-    plt.savefig(file_name)
-
+    return auc_score
