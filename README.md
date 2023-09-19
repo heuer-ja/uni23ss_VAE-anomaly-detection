@@ -37,30 +37,10 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (x) update loss in dVAE: KL divergence + MSE or CrossEntropy
 
 
-----------------------------------
-(TODO) Anomaly detection
-    1. detect_alpha  -- based on training data (after training) and NORMAL LOSS function
-    2. detect_anomalies -- based on test data (after training) and NORMAL LOSS function
-
-    --> muss nicht in model.py, kann aber
-    --> aktuell doppelt gemoppelt, da in model.py und anomaly_detection.py 
-
-BUUUUG: Alle Instances eines Batches haben gleichen Loss, rip! 
-        Grund: get_loss() returnt avg. loss (ein float, kein tensor)
-
-        Lösung: in model.py 
-
-        - erstelle:  def get_loss_of_instance(): Tensor
-        - erstelle:  def get_loss_of_batch():float die get_loss_of_instance() aufruft und avg() oder sum()
-                   -> äquivalent zum aktuellen get_loss(), die dadurch ersetzt wird
-        
-        - nutze get_loss_of_batch() in train()
-        - nutze get_loss_of_instances in anomaly_detection.py
-
-        + bitte in DOC String schreiben, dass eine durchschnitts-loss und eine isntance-loss berechnet
-
-----------------------------------
-
+(x) Anomaly detection
+    (x) detect_alpha  -- based on training data (after training) and REC. LOSS function
+    (x) detect_anomalies -- based on test data (after training) and REC. LOSS function
+    (x) return DataFrame holding information about anomaly distribution
 
 (~) Evaluation
     (x) log all dictonaries (loss, etc.)
@@ -70,11 +50,13 @@ BUUUUG: Alle Instances eines Batches haben gleichen Loss, rip!
 
 (o) Reconstruction
     (o) plot latent space (e. g., images)
-    (o) implement reconstructions with generate()
+    (x) implement reconstructions with generate()
     (o) plot top 5 anomalies (e. g., images)
     (o) plot top 5 normals (e. g., images)
 
-
+(o) create new main
+    (o) rename main.py -> run.py
+    (o) new main: iterate run.py for different anomaly classes
 
 
 
