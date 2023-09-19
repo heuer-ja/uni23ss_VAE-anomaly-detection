@@ -5,6 +5,10 @@
 
 
 import sys
+from time import sleep
+
+from visualization import plot_mnist_orig_and_recon
+
 sys.dont_write_bytecode = True
 
 # libraries
@@ -22,13 +26,13 @@ from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
-from anomaly_detection import detect_anomalies
+from ano import detect_alpha2, detect_anomalies
 
 def main():
     # MODEL & ANOMALY CLASS
-    IS_MODEL_PROBABILISTIC = True
-    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
-    ANOMALY_CLASS = LabelsKDD1999.DoS if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Five
+    IS_MODEL_PROBABILISTIC = False
+    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
+    ANOMALY_CLASS = LabelsKDD1999.U2R if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Two
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -40,7 +44,7 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 10
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
@@ -78,6 +82,7 @@ def main():
     len_test = X_test.shape[0]
 
     print(f'''HYPERPARAMETER:
+    \tProbabilistic:\t{IS_MODEL_PROBABILISTIC}
     \tModel:\t\t\t{MODEL_TO_TRAIN}
     \tAnomaly class:\t{ANOMALY_CLASS.value}
     \tEpochs:\t\t\t{NUM_EPOCHS}
@@ -132,16 +137,46 @@ def main():
         train_loader=loader_train,
     )
 
-    return 
+    ##############################################
+    # extract only anomalie instances of test data 
+    #X_test, y_test = dataset_test.tensors
+    #X_test = X_test[y_test == ANOMALY_CLASS.value]
+    #y_test = y_test[y_test == ANOMALY_CLASS.value]
+    #dataset_test_ANO = TensorDataset(X_test, y_test)
+    #loader_testANO = DataLoader(
+    #    dataset_test_ANO,
+    #    batch_size=BATCH_SIZE,
+    #    num_workers=NUM_WORKERS,
+    #    shuffle=True,
+    #)
+    #if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
+    #    
+    #    for X, y in loader_testANO:
+    #        X = X.to(DEVICE)
+    #        y = y.to(DEVICE)
+#
+    #        batch_reconstructions:torch.Tensor = model.reconstruct(x=X)
+    #        batch_reconstructions  = batch_reconstructions.squeeze(1)
+    #        plot_mnist_orig_and_recon(
+    #                batch_size=10, 
+    #                x_orig=X, 
+    #                x_recon=batch_reconstructions,
+    #                y=y, 
+    #            ) 
+    #        
+    #        sleep(1)
+#
+    
+
     # ANOMALY DETECTION
     print('ANOMALY DETECTION')
 
     detect_anomalies(
         model=model,
+        device=DEVICE,
         loader_train=loader_train,
         loader_test=loader_test,
-        DEVICE=DEVICE,
-        model_to_train=MODEL_TO_TRAIN,
+        model_to_train=MODEL_TO_TRAIN
     )
 
 
