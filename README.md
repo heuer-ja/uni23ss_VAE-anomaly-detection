@@ -37,26 +37,38 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (x) update loss in dVAE: KL divergence + MSE or CrossEntropy
 
 
+
+(x) Evaluation
+    (x) log all dictonaries (loss, etc.)
+    (x) plot metrics
+    (x) AUC ROC
+        (x) evaluation.py
+            (x) recon_loss von test data erhalten
+            (x) verbinde recon_loss mit labels
+            (x) normalize recon_loss [0,1] falls notwendig (ist nicht notwendig!)
+            (x) roc_curve berechnen (fpr, tpr, thresholds)
+            (x) auc berechnen
+            (x) plot roc_curve 
+            --> roc curve testet sogesehen k verschiedene alphas (normalisiert oder nicht) 
+
+    (x) AUC PR
+    (x) F1 Score
+
 (x) Anomaly detection
-    (x) detect_alpha  -- based on training data (after training) and REC. LOSS function
+    (x) detect_alpha -- based on training data (after training) and REC. LOSS function
     (x) detect_anomalies -- based on test data (after training) and REC. LOSS function
     (x) return DataFrame holding information about anomaly distribution
 
-(~) Evaluation
-    (x) log all dictonaries (loss, etc.)
-    (x) plot metrics
-    (o) AUC ROC
-    (o) AUC PR
+(o) create run.py and new_main.py
+    (o) rename main.py -> run.py
+    (o) new main: iterate run.py for different anomaly classes
+    (o) create a DF holding all information (auc_roc, f1, auc_prc) about the different anomaly classes
 
 (o) Reconstruction
     (o) plot latent space (e. g., images)
     (x) implement reconstructions with generate()
     (o) plot top 5 anomalies (e. g., images)
     (o) plot top 5 normals (e. g., images)
-
-(o) create new main
-    (o) rename main.py -> run.py
-    (o) new main: iterate run.py for different anomaly classes
 
 
 
