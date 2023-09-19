@@ -50,12 +50,13 @@ def detect_alpha2(
     if model_to_train == ModelToTrain.FULLY_TABULAR:
         df = _df_label_mapping_kdd1999(df)
 
-    print('\tLoss distribution per class (Training):')
+    print('\n\tLoss distribution per class (TRAIN):')
+    df = df.sort_values(by=['avg_loss'], ascending=model.is_probabilistic)
     print(df.head(20))
 
-    # alpha is highest avg loss
+    # Choose alpha: lowestes recon. prob / highestes recon. error
     alpha:float = df['avg_loss'].min() if model.is_probabilistic else df['avg_loss'].max()
-    print(f'\n\tAlpha: {alpha}')
+    print(f'\n\t--> Alpha: {alpha} {"(lowest avg. recon. prob.)" if model.is_probabilistic else "(higest avg. recon error)"}\n')
 
     return alpha
 
@@ -87,9 +88,6 @@ def detect_anomalies(
         with torch.no_grad():
             pred_dict:dict = model.predict(x_batch)
             rec_loss:dict = model.get_reconstruction_loss(x_batch, pred_dict)
-
-        #print(f'\t\tLoss range: [{rec_loss.min().item()}, {rec_loss.max().item()}]')
-        
         # anomalies
         is_anomaly_bitmask:torch.Tensor = rec_loss < alpha if model.is_probabilistic else rec_loss > alpha
         
@@ -100,30 +98,36 @@ def detect_anomalies(
             'is_anomaly': is_anomaly_bitmask.cpu().numpy()
         })
 
-        #print(df_batch.head(50))
-        #return 
-
         # append to anomalies dataframe
         df_anomalies = pd.concat([df_anomalies, df_batch])
 
     if model_to_train == ModelToTrain.FULLY_TABULAR:
         df_anomalies = _df_label_mapping_kdd1999(df_anomalies)
 
-    # anomalies distribution 
-    print('\n\tAnomalies distribution (TEST):')
-    df_result = df_anomalies.groupby(['label', 'is_anomaly']).size().reset_index(name='amount')
-    total_count = df_result.groupby('label')['amount'].transform('sum')
-    df_result['percentage'] = (df_result['amount'] / total_count * 100).round(2).astype(str) + '%'
-    print(df_result.head(20))
-
-
     # avg loss per class
     df_new = df_anomalies.groupby('label')['loss'].mean().reset_index()
     df_new.columns = ['label', 'avg_loss']
 
+    print('\t\nLoss distribution per class (TEST):')
+    df_new = df_new.sort_values(by=['avg_loss'], ascending=model.is_probabilistic)
     print(df_new.head(20))
 
-    pass
+
+    # anomalies distribution 
+    print('\n\tAnomalies distribution (TEST):')
+    df_result = df_anomalies.groupby(['label', 'is_anomaly']).size().reset_index(name='amount')
+    total_count = df_result.groupby('label')['amount'].transform('sum')
+    df_result['percentage'] = (df_result['amount'] / total_count * 100).round(2)
+    
+    # sort df by 'is_anomaly', 'percentage'
+    df_result = df_result.sort_values(
+        by=['is_anomaly', 'percentage'], 
+        ascending=[False, False]
+    )
+    print(df_result.head(20))
+
+
+    return 
 
 
 def _df_label_mapping_kdd1999(df:pd.DataFrame) -> pd.DataFrame:
