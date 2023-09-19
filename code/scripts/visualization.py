@@ -23,7 +23,7 @@ def plot_train_pred(log_train_pred:VAELogTrain):
     ax[2].scatter(range(len(log_train_pred.recon_loss)), log_train_pred.recon_loss, s=1)
     ax[2].set_title('Reconstruction Loss')
 
-    print(f'Plotting training progress in {file_name}\n')
+    print(f'\t\tPlotting training progress in {file_name}\n')
     plt.savefig(file_name)
     return
 
@@ -45,6 +45,6 @@ def plot_mnist_orig_and_recon(
         axes[i,0].axis('off')
         axes[i,1].axis('off')
 
-    print(f'Plotting MNIST (original and reconstruction) in {file_name}\n')
+    print(f'\t\tPlotting MNIST (original and reconstruction) in {file_name}')
     plt.savefig(file_name)
     pass
