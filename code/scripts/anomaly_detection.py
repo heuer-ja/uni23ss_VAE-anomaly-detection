@@ -1,94 +1,136 @@
+from typing import List
 import torch
 import torch.nn as nn
 import pandas as pd
 from torch.utils.data import DataLoader
+from torch import Tensor 
 
 from model import IVAE 
+from helper_classes import LabelsKDD1999, ModelToTrain
 
-from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 
-
-def determine_alpha(
-        model:nn.Module, 
+def get_alpha(
+        device:str, 
+        model:IVAE,
         loader_train:DataLoader,
-        DEVICE:str
-        ) -> float:
-    '''
-    alpha is highest reconstruction probability of train data X
-    '''
-    # detect alpha (max reconstruction prob. of train data)
-    alpha:float = 0
-    for x_batch, _ in loader_train:        
-        x_batch = x_batch.to(DEVICE)
-        probs:torch.Tensor = model.reconstruction_probability(x_batch)
+        model_to_train=ModelToTrain 
+    ) -> float :
+    print(f"\tDetecting alpha (threshold).\n\tModel is {'PROBABILISTIC' if model.is_probabilistic else 'DETERMINISTIC'}, so loss {'(i.e., recon. prob.)' if model.is_probabilistic else '(i.e., recon. error)'} of ANOMALIES should to be {'SMALLER' if model.is_probabilistic else 'BIGGER'} than alpha.")
+    alpha:float = 1e10 if model.is_probabilistic else 0
 
-        if probs.max().item() > alpha:
-            alpha = probs.max().item()
-            print(f'\tNew alpha: {alpha}')
+    labels:List[int] = loader_train.dataset.tensors[1].unique().tolist()
+    loss_per_class:dict = {label:[] for label in labels}    
 
-    print(f'\tFinal Alpha: {alpha}\n')
+    # 1. calc loss of each training instance
+    for x_batch, y_batch in loader_train:
+        x_batch = x_batch.to(device)
+
+        # calc loss
+        with torch.no_grad():
+            pred_dict:dict = model.predict(x_batch)
+            rec_loss:Tensor = model.get_reconstruction_loss(x_batch, pred_dict) # [batch_size]
+
+        # append loss to list
+        for i, label in enumerate(y_batch):
+            loss_per_class[label.item()].append(rec_loss[i].item())
+
+    # Dataframe to see loss distribution per class
+    df_list = []  # Liste der DataFrames für jede Klasse
+    for label in labels:
+        df_batch = pd.DataFrame({
+            'label': [label],
+            'avg_loss': [sum(loss_per_class[label]) / len(loss_per_class[label])],
+            'min_loss': [min(loss_per_class[label])],
+            'max_loss': [max(loss_per_class[label])]
+        })
+        df_list.append(df_batch)
+    df = pd.concat(df_list, ignore_index=True)
+
+    # if KDD 1999, map label to str using LabelsKDD1999
+    if model_to_train == ModelToTrain.FULLY_TABULAR:
+        df = _df_label_mapping_kdd1999(df)
+
+    print('\n\tLoss distribution per class (TRAIN):')
+    df = df.sort_values(by=['avg_loss'], ascending=model.is_probabilistic)
+    print(df.head(20))
+
+    # Choose alpha: lowestes recon. prob / highestes recon. error
+    alpha:float = df['avg_loss'].min() if model.is_probabilistic else df['avg_loss'].max()
+    print(f'\n\t--> Alpha: {alpha} {"(lowest avg. recon. prob.)" if model.is_probabilistic else "(higest avg. recon error)"}\n')
+
     return alpha
 
 def detect_anomalies(
-        model:nn.Module, 
+        device:str, 
+        model:IVAE,
         loader_train:DataLoader, 
-        loader_test:DataLoader, 
-        DEVICE:str,
+        loader_test:DataLoader,
         model_to_train:ModelToTrain
-        ) :
-    
-    # determine alpha
-    alpha:float = determine_alpha(model, loader_train, DEVICE)
+) -> None:
+    model.eval()  
+    # 1. determine alpha based on TRAINING data
+    # 2. detect anomalies in TEST data based on alpha
+    # 3. show anomalies distribution (i.e., how many anomalies are detected in each class)
 
-    y_train:torch.Tensor = loader_train.dataset.tensors[1].squeeze().to(DEVICE)
-    y_test:torch.Tensor  = loader_test.dataset.tensors[1].squeeze().to(DEVICE)
+    # alpha
+    alpha:float = get_alpha(device, model, loader_train, model_to_train)
 
-    max_prob:float = 0
+    # anomalies
+    df_anomalies:pd.DataFrame = pd.DataFrame(
+        columns=['label', 'loss', 'is_anomaly']
+    )
 
-    # detect anomalies
-    anomalies_bitmask:[torch.Tensor] = []
-    for x_batch, y_batch in loader_test:        
+    for x_batch, y_batch in loader_test:
+        x_batch = x_batch.to(device)
+        y_batch = y_batch.to(device)
 
-        x_batch = x_batch.to(DEVICE)
-        y_batch = y_batch.to(DEVICE)
-
-        anomalies_batch:torch.Tensor 
-        anomalies_batch, p = model.is_anomaly(x_batch, alpha)
-
-        # LOGGING: max prob
-        if p.max().item() > max_prob:
-            max_prob = p.max().item()
-            print(f'\tNew test max_recon_prob: {max_prob}')
-
-        anomalies_bitmask.append(anomalies_batch)
-
-    # concatenate all batches
-    anomalies_bitmask = torch.cat(anomalies_bitmask, dim=0).bool()
-
-    # combine anomalies with labels
-    anomalies_bitmask = torch.stack([anomalies_bitmask, y_test], dim=1)
-    
-    # LOGGING: Distribution of classes
-    data = []
-    classes:[] = [c for c in LabelsKDD1999] if model_to_train == ModelToTrain.FULLY_TABULAR else [c for c in LabelsMNIST]
-    for c in classes:
-        c_int:int = c.value.encoded if model_to_train == ModelToTrain.FULLY_TABULAR else c.value
-        c_label:str = c.value.label if model_to_train == ModelToTrain.FULLY_TABULAR else c.value
-
-        len_train:int = len(y_train[y_train==c_int])
-        len_test:int = len(y_test[y_test==c_int])
-        len_anomalies:int = len(anomalies_bitmask[anomalies_bitmask[:,1]==c_int])
-
-        data.append({
-            'Class': c_label,
-            '#Data (Train)': len_train,
-            '#Data (Test)': len_test,
-            '#Normals (Test)': len_test - len_anomalies,
-            '#Anomalies (Test)': len_anomalies,
+        # calc loss
+        with torch.no_grad():
+            pred_dict:dict = model.predict(x_batch)
+            rec_loss:dict = model.get_reconstruction_loss(x_batch, pred_dict)
+        # anomalies
+        is_anomaly_bitmask:torch.Tensor = rec_loss < alpha if model.is_probabilistic else rec_loss > alpha
+        
+        # create batch dataframe  
+        df_batch = pd.DataFrame({
+            'label': y_batch.cpu().numpy(),
+            'loss': rec_loss.cpu().numpy(),
+            'is_anomaly': is_anomaly_bitmask.cpu().numpy()
         })
 
-    df:pd.DataFrame = pd.DataFrame(data)
-    df.loc['Total'] = df.sum(numeric_only=True, axis=0)
+        # append to anomalies dataframe
+        df_anomalies = pd.concat([df_anomalies, df_batch])
 
-    print(df.head(11))
-    return
+    if model_to_train == ModelToTrain.FULLY_TABULAR:
+        df_anomalies = _df_label_mapping_kdd1999(df_anomalies)
+
+    # avg loss per class
+    df_new = df_anomalies.groupby('label')['loss'].mean().reset_index()
+    df_new.columns = ['label', 'avg_loss']
+
+    print('\t\nLoss distribution per class (TEST):')
+    df_new = df_new.sort_values(by=['avg_loss'], ascending=model.is_probabilistic)
+    print(df_new.head(20))
+
+
+    # anomalies distribution 
+    print('\n\tAnomalies distribution (TEST):')
+    df_result = df_anomalies.groupby(['label', 'is_anomaly']).size().reset_index(name='amount')
+    total_count = df_result.groupby('label')['amount'].transform('sum')
+    df_result['percentage'] = (df_result['amount'] / total_count * 100).round(2)
+    
+    # sort df by 'is_anomaly', 'percentage'
+    df_result = df_result.sort_values(
+        by=['is_anomaly', 'percentage'], 
+        ascending=[False, False]
+    )
+    print(df_result.head(20))
+
+
+    return 
+
+
+def _df_label_mapping_kdd1999(df:pd.DataFrame) -> pd.DataFrame:
+    label_mapping:dict = {si.value.encoded: si.value.label for si in LabelsKDD1999}
+    df['label'] = df['label'].map(label_mapping)
+    return df
