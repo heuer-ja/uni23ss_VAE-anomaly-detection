@@ -26,13 +26,13 @@ from model import VAE_CNN, VAE_Tabular
 from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
-from ano import detect_alpha2, detect_anomalies
+from anomaly_detection import detect_anomalies
 
 def main():
     # MODEL & ANOMALY CLASS
-    IS_MODEL_PROBABILISTIC = False
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
-    ANOMALY_CLASS = LabelsKDD1999.U2R if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Two
+    IS_MODEL_PROBABILISTIC = True
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
+    ANOMALY_CLASS = LabelsKDD1999.U2R if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Three
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -44,12 +44,12 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 5
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 3
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
         LEARNING_RATE = 1e-5
     
