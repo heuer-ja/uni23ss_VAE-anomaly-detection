@@ -27,12 +27,13 @@ from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
+from evaluation import plot_roc_curve
 
 def main():
     # MODEL & ANOMALY CLASS
-    IS_MODEL_PROBABILISTIC = True
+    IS_MODEL_PROBABILISTIC = False
     MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
-    ANOMALY_CLASS = LabelsKDD1999.U2R if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Three
+    ANOMALY_CLASS = LabelsKDD1999.U2R if MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR else LabelsMNIST.Zero
 
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
@@ -44,12 +45,12 @@ def main():
 
     # HYPERPARAMETER
     if MODEL_TO_TRAIN == ModelToTrain.CNN_MNIST:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 2
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 64
         LEARNING_RATE = 1e-4
     
     elif MODEL_TO_TRAIN == ModelToTrain.FULLY_TABULAR:
-        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 20
+        NUM_EPOCHS = 2  if DEVICE == 'cpu' else 2
         BATCH_SIZE = 16 if DEVICE == 'cpu' else 128 
         LEARNING_RATE = 1e-5
     
@@ -168,24 +169,29 @@ def main():
 #
     
 
-    # ANOMALY DETECTION
-    print('ANOMALY DETECTION')
 
-    detect_anomalies(
+    # EVALUATION
+    plot_roc_curve(
         model=model,
-        device=DEVICE,
-        loader_train=loader_train,
         loader_test=loader_test,
-        model_to_train=MODEL_TO_TRAIN
+        device=DEVICE,
+        anomaly_class=ANOMALY_CLASS,
+        model_to_train=MODEL_TO_TRAIN,
     )
 
+    # ANOMALY DETECTION
+    #print('ANOMALY DETECTION')
+#
+    #detect_anomalies(
+    #    model=model,
+    #    device=DEVICE,
+    #    loader_train=loader_train,
+    #    loader_test=loader_test,
+    #    model_to_train=MODEL_TO_TRAIN
+    #)
 
-    # detect anomalies
-    #batch1_X, batch1_y = next(iter(loader_train))
-    #batch1_X = batch1_X.to(DEVICE)
-    #outliers = model.is_anomaly(batch1_X)
-    #print(f'\tOutliers: {outliers}')
-    #print(f'\tOutliers Shape: {outliers.shape}')
+
+
 
 if __name__ == "__main__": 
     main()
