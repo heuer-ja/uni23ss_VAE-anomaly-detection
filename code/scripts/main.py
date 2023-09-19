@@ -27,7 +27,7 @@ from dataset import IDataset, DatasetMNIST, DatasetKDD
 from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from train import train
 from anomaly_detection import detect_anomalies
-from evaluation import get_auc
+from evaluation import get_metrics
 
 def main():
     # MODEL & ANOMALY CLASS
@@ -168,10 +168,8 @@ def main():
     #        sleep(1)
 #
     
-
-
     # EVALUATION
-    auc:float = get_auc(
+    auc, f1, auc_prc = get_metrics(
         model=model,
         loader_test=loader_test,
         device=DEVICE,
@@ -180,7 +178,9 @@ def main():
         plot_roc=True,
     )
     
-    print(f'\t\tAUC value = {auc.round(3)}\n')
+    print(f'\t\tAUC value = {auc.round(3)}')
+    print(f'\t\tF1 value = {f1.round(3)}')
+    print(f'\t\tAUC PRC value = {auc_prc.round(3)}')
 
     # ANOMALY DETECTION
     #print('ANOMALY DETECTION')

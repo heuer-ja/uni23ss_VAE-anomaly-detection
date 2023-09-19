@@ -1,9 +1,10 @@
 
 from enum import Enum
 import pandas as pd
-from sklearn.metrics import roc_curve, auc
-import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, auc, average_precision_score, f1_score
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 from torch.utils.data import DataLoader
 from helper_classes import ModelToTrain
@@ -55,14 +56,15 @@ def get_test_data_loss(
     return df
 
 
-def get_auc(
-        model:IVAE,
-        loader_test:DataLoader,
-        device:str,
-        anomaly_class:Enum,
-        model_to_train:ModelToTrain,
-        plot_roc:bool = True,
-    )-> None:
+
+def get_metrics(
+    model:IVAE,
+    loader_test:DataLoader,
+    device:str,
+    anomaly_class:Enum,
+    model_to_train:ModelToTrain,
+    plot_roc:bool = True,    
+):
     print('EVALLUATION:')
 
     # test data loss
@@ -77,16 +79,13 @@ def get_auc(
     anomaly_class_label = anomaly_class.value if model_to_train == ModelToTrain.CNN_MNIST else anomaly_class.value.label
     df['is_anomaly_class'] = df['label'] == anomaly_class_value
 
-    # calc roc curve
-    fpr, tpr, thresholds = roc_curve(
-        y_true=df['is_anomaly_class'],
-        y_score=df['loss_normalized'],
-    )
 
-    # calc auc
+    #1 AUC ROC
+    # calc roc curve
+    fpr, tpr, thresholds = roc_curve(y_true=df['is_anomaly_class'],y_score=df['loss'],)
     auc_score = auc(fpr, tpr)
     
-    # plot
+    # plot ROC CURVE
     if plot_roc:
         dataset_name = "mnist" if model_to_train == ModelToTrain.CNN_MNIST else "kdd"
         directory = f'roc_{dataset_name}'
@@ -101,4 +100,11 @@ def get_auc(
         plt.legend(loc="lower right")
         plt.savefig(file_name)
 
-    return auc_score
+    # 2. F1 scores
+    f1_scores = [f1_score(df['is_anomaly_class'], df['loss'] > threshold) for threshold in thresholds]
+    f1_max = np.max(f1_scores)
+
+    # 3. AUC PRC
+    auc_prc = average_precision_score(df['is_anomaly_class'], df['loss'])
+
+    return auc_score, f1_max, auc_prc
