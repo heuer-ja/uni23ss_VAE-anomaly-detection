@@ -114,19 +114,14 @@ class IVAE(nn.Module, ABC):
             # reshape x to match dist_recon.scale.shape
             x = x.view(dist_recon.scale.shape) # [batch_size, 784] | [batch_size, 121]
 
-            # .log_prob(x) [batch_size, 784] | [batch_size, 121] -> mean() [784] | [121] 
-            log_lik = dist_recon.log_prob(x).mean(dim=0) # TODO: shape richtig? bei dVAE musste ich bei mse_loss anpassen
+            # .log_prob(x) [batch_size, 784] | [batch_size, 121] -> mean() [batch_size] 
+            log_lik = dist_recon.log_prob(x).mean(dim=1) 
+ 
             recon_loss =  log_lik
 
         # normal/deterministic VAE
         else:
             recon_x:Tensor = pred_result['decoded']	
-
-            # reshape x to [batch_size, features] (important for MNIST which is [batch_size, 1, 28, 28])
-            #num_features:int =  reduce(mul, x.shape[1:])
-            #x = x.view(x.shape[0], num_features)
-            #recon_x = recon_x.view(x.shape[0], num_features)
-
             mse_loss_list = []
             
             for (xi, recon_xi) in zip(x, recon_x):
@@ -135,10 +130,8 @@ class IVAE(nn.Module, ABC):
 
             mse_loss_batch = torch.Tensor(mse_loss_list) 
             recon_loss = mse_loss_batch
-
         return recon_loss
 
-    
     def get_loss(self, x:Tensor, pred_result:dict) -> dict:
         loss_dict:dict = dict()
 
@@ -153,7 +146,7 @@ class IVAE(nn.Module, ABC):
             x = x.view(dist_recon.scale.shape) # [batch_size, 784] | [batch_size, 121]
 
             # .log_prob(x) [batch_size, 784] | [batch_size, 121] -> mean() [784] | [121] -> sum()/mean single value
-            log_lik = dist_recon.log_prob(x).mean(dim=0).sum() # mean or sum or ?
+            log_lik = dist_recon.log_prob(x).mean(dim=1).sum() # mean or sum or ?
             
             kl = kl_divergence(dist_latent, self.prior).mean(dim=0).sum() # single value
 
