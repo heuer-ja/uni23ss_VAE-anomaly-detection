@@ -7,9 +7,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.utils.data import DataLoader
-from helper_classes import ModelToTrain
 
 from model import IVAE
+from helper_classes import ModelToTrain
+from visualization import plot_roc_curve
 
 
 PATH:str = '../plots/'
@@ -79,19 +80,7 @@ def get_metrics(
     
     # plot ROC CURVE
     if plot_roc:
-        dataset_name = "mnist" if model_to_train == ModelToTrain.CNN_MNIST else "kdd"
-        directory = f'roc_{dataset_name}'
-        file_name:str = f'{PATH}{directory}/roc_anomaly-class-{anomaly_class_label}.png'
-
-        plt.figure()
-        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = {:.2f})'.format(auc_score))
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-        plt.title('ROC curve')
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.legend(loc="lower right")
-        plt.savefig(file_name)
-        plt.close()
+        plot_roc_curve(model_to_train,anomaly_class_label,fpr,tpr,auc_score)
 
     # 2. F1 scores
     f1_scores = [f1_score(df['is_anomaly_class'], df['loss_normalized'] > threshold) for threshold in thresholds]
