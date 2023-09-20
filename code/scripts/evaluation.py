@@ -89,4 +89,10 @@ def get_metrics(
     # 3. AUC PRC
     auc_prc = average_precision_score(df['is_anomaly_class'], df['loss_normalized'])
 
-    return auc_score, f1_max, auc_prc
+    # 4. add column 'showing how much percent of test data is anomaly class'
+    _,y =  loader_test.dataset.tensors
+    len_test_data = len(y)
+    len_ano_class = len(y[y == anomaly_class_value])
+    percent_ano_class = (len_ano_class / len_test_data)
+
+    return auc_score, f1_max, auc_prc, percent_ano_class

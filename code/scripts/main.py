@@ -20,8 +20,8 @@ from run import run_for_one_anomaly_class
 def main():
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
-    IS_MODEL_PROBABILISTIC = False
-    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
+    IS_MODEL_PROBABILISTIC = True
+    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
 
     # DEVICE
     CUDA_DEVICE_NUM = 1
@@ -48,7 +48,7 @@ def main():
     anomaly_classes:List[Enum] = [ano_class for ano_class in anomaly_enum]  
 
     # run for each anomaly class and track metrics
-    df = pd.DataFrame(columns=['anomaly_class', 'auc', 'auc_prc', 'f1'])
+    df = pd.DataFrame(columns=['anomaly_class', 'auc', 'auc_prc', 'f1', 'anomaly_class_%_in_test_data'])
 
     start_time = time.time()
 
@@ -59,8 +59,10 @@ def main():
         auc:float = None
         auc_prc:float = None
         f1:float = None
+        ano_class_percentage: float = None
 
-        auc, f1, auc_prc= run_for_one_anomaly_class(
+
+        auc, f1, auc_prc, ano_class_percentage = run_for_one_anomaly_class(
             # MODEL & ANOMALY CLASS
             is_model_probabilistic=IS_MODEL_PROBABILISTIC,
             model_to_train=MODEL_TO_TRAIN,
@@ -79,6 +81,7 @@ def main():
             'auc': [auc.round(3)],
             'auc_prc': [auc_prc.round(3)],
             'f1': [f1.round(3)],
+            'anomaly_class_%_in_test_data': [round(ano_class_percentage, 3)]
         })
 
         df = pd.concat([df, df_temp], ignore_index=True)

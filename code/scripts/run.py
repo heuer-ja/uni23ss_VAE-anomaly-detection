@@ -160,7 +160,7 @@ def run_for_one_anomaly_class(
 #
     
     # EVALUATION
-    auc, f1, auc_prc = get_metrics(
+    auc, f1, auc_prc, ano_class_percentage = get_metrics(
         model=model,
         loader_test=loader_test,
         device=device,
@@ -184,14 +184,14 @@ def run_for_one_anomaly_class(
     #    model_to_train=model_to_train
     #)
 
-    return auc, f1, auc_prc
+    return auc, f1, auc_prc, ano_class_percentage
 
 
 
 if __name__ == "__main__": 
     run_for_one_anomaly_class(
-        anomaly_class= LabelsMNIST.Zero,
-        model_to_train=ModelToTrain.CNN_MNIST,
-        learning_rate=1e-4,
+        model_to_train=ModelToTrain.FULLY_TABULAR,
+        anomaly_class= LabelsKDD1999.Normal,
+        learning_rate=1e-5,
         batch_size=64
     )
