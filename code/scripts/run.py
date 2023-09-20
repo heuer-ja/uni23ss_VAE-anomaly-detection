@@ -189,9 +189,20 @@ def run_for_one_anomaly_class(
 
 
 if __name__ == "__main__": 
-    run_for_one_anomaly_class(
-        model_to_train=ModelToTrain.FULLY_TABULAR,
-        anomaly_class= LabelsKDD1999.Normal,
-        learning_rate=1e-5,
-        batch_size=64
-    )
+    run_mnist:bool = True
+
+    if run_mnist:
+        run_for_one_anomaly_class(
+            model_to_train=ModelToTrain.CNN_MNIST,
+            anomaly_class= LabelsMNIST.Zero,
+            learning_rate=1e-4,
+            batch_size=64
+        )
+
+    else:
+         run_for_one_anomaly_class(
+            model_to_train=ModelToTrain.FULLY_TABULAR,
+            anomaly_class= LabelsKDD1999.Normal,
+            learning_rate=1e-5,
+            batch_size=64
+        )

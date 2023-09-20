@@ -2,7 +2,7 @@ import torch
 import pandas as pd
 import  numpy as np
 
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from sklearn.preprocessing import StandardScaler
 from torch.utils.data import TensorDataset 
 from typing import Tuple
@@ -15,23 +15,23 @@ from helper_classes import LabelsKDD1999, LabelsMNIST
 
 class IDataset(ABC):
 
-    @abstractclassmethod
+    @abstractmethod
     def get_data(self) -> TensorDataset:
         pass     
 
-    @abstractclassmethod
+    @abstractmethod
     def load(self):
         pass 
 
-    @abstractclassmethod
+    @abstractmethod
     def normalize(self):
         pass 
 
-    @abstractclassmethod
+    @abstractmethod
     def to_tensor_dataset(self) -> TensorDataset:
         pass
 
-    @abstractclassmethod
+    @abstractmethod
     def get_anomaly_train_test(self, 
                 X_train:np.ndarray,
                 y_train:np.ndarray,
