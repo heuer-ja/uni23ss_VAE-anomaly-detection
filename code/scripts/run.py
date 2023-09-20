@@ -32,16 +32,16 @@ from evaluation import get_metrics
 
 def run_for_one_anomaly_class(
     # MODEL & ANOMALY CLASS
-    is_model_probabilistic:bool,
-    model_to_train:ModelToTrain,
-    anomaly_class:Enum,
+    is_model_probabilistic:bool = False,
+    model_to_train:ModelToTrain = ModelToTrain.FULLY_TABULAR,
+    anomaly_class:Enum = LabelsKDD1999.Normal,
     # DEVICE
-    device:str,
-    num_workers:int,
+    device:str = 'cuda:1',
+    num_workers:int = 1,
     # HYPERPARAMETER
-    num_epochs:int,
-    batch_size:int,
-    learning_rate:float,
+    num_epochs:int = 1,
+    batch_size:int = 128,
+    learning_rate:float = 1e-5,
 
 
 ):
@@ -185,3 +185,13 @@ def run_for_one_anomaly_class(
     #)
 
     return auc, f1, auc_prc
+
+
+
+if __name__ == "__main__": 
+    run_for_one_anomaly_class(
+        anomaly_class= LabelsMNIST.Zero,
+        model_to_train=ModelToTrain.CNN_MNIST,
+        learning_rate=1e-4,
+        batch_size=64
+    )

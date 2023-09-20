@@ -1,5 +1,6 @@
 
 import sys
+import time
 
 sys.dont_write_bytecode = True
 
@@ -20,7 +21,7 @@ def main():
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
 
     IS_MODEL_PROBABILISTIC = False
-    MODEL_TO_TRAIN = ModelToTrain.FULLY_TABULAR
+    MODEL_TO_TRAIN = ModelToTrain.CNN_MNIST
 
     # DEVICE
     CUDA_DEVICE_NUM = 1
@@ -48,6 +49,9 @@ def main():
 
     # run for each anomaly class and track metrics
     df = pd.DataFrame(columns=['anomaly_class', 'auc', 'auc_prc', 'f1'])
+
+    start_time = time.time()
+
     for anomaly_class in anomaly_classes:
 
         print(f'RUNNING: FOR ANOMALY CLASS: ', anomaly_class.name)
@@ -72,15 +76,17 @@ def main():
 
         df_temp:pd.DataFrame = pd.DataFrame({
             'anomaly_class': [anomaly_class.name],
-            'auc': [auc],
-            'auc_prc': [auc_prc],
-            'f1': [f1],
+            'auc': [auc.round(3)],
+            'auc_prc': [auc_prc.round(3)],
+            'f1': [f1.round(3)],
         })
 
         df = pd.concat([df, df_temp], ignore_index=True)
 
         print('\n\nTemporary overview about metrics:\n')
         print(df.head(100))
+
+        print('\n\nTOTAL TIME ELAPSED: %.2f min' % ((time.time() - start_time)/60))
         print('================================================\n\n\n\n\n')
 
     print('FINAL RESULT')
