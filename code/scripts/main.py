@@ -16,6 +16,7 @@ from helper_classes import LabelsKDD1999, LabelsMNIST, ModelToTrain
 from run import run_for_one_anomaly_class
 
 
+PATH:str = '../results/'
 
 def main():
     print(f'PROCESS ID:\t\t{os.getpid()}\n')
@@ -94,8 +95,14 @@ def main():
 
     print('FINAL RESULT')
     print(df.head(100))
-    print('End')
 
+
+    file_name:str = f'{PATH}{"probabilistic" if IS_MODEL_PROBABILISTIC else "deterministic"}-VAE_{"mnist" if MODEL_TO_TRAIN==ModelToTrain.CNN_MNIST else "kdd"}_results.csv'
+    print(f'Saving results to {file_name}')
+    df.to_csv(file_name, index=False)
+
+
+    print('\n\nScript finished.')
     return 
 
 
