@@ -21,41 +21,34 @@ def get_test_data_loss(
         device:str,
 
     ) -> pd.DataFrame:
+
     model.eval()
-    
-    df:pd.DataFrame = pd.DataFrame(
-        columns=['label', 'loss']
-    )
-    for x_batch, y_batch in loader_test:
-        x_batch = x_batch.to(device)
-        y_batch = y_batch.to(device)
+    df:pd.DataFrame = pd.DataFrame(columns=['label', 'loss'])
+
+    for X, y in loader_test:
+        X = X.to(device)
+        y = y.to(device)
 
         # calc loss
         with torch.no_grad():
-            pred_dict:dict = model.predict(x_batch)
-            rec_loss:dict = model.get_reconstruction_loss(x_batch, pred_dict)
-        # anomalies
+            pred_dict:dict = model.predict(X)
+            rec_loss:dict = model.get_reconstruction_loss(X, pred_dict)
         
         # create batch dataframe  
         df_batch = pd.DataFrame({
-            'label': y_batch.cpu().numpy(),
-            'loss': rec_loss.cpu().numpy(),
+            'label': y.cpu().numpy(),
+            'loss':  rec_loss.cpu().numpy(),
         })
-
         df = pd.concat([df, df_batch])
-    
 
     # normalize loss
     df['loss_normalized'] = df['loss'].round(3)
 
     min_loss = df['loss'].min()
     max_loss = df['loss'].max()
-
     df['loss_normalized'] = ((df['loss'] - min_loss) / (max_loss - min_loss)).round(3)
 
     return df
-
-
 
 def get_metrics(
     model:IVAE,
@@ -78,11 +71,10 @@ def get_metrics(
     anomaly_class_value = anomaly_class.value if model_to_train == ModelToTrain.CNN_MNIST else anomaly_class.value.encoded
     anomaly_class_label = anomaly_class.value if model_to_train == ModelToTrain.CNN_MNIST else anomaly_class.value.label
     df['is_anomaly_class'] = df['label'] == anomaly_class_value
-
-
+    
     #1 AUC ROC
     # calc roc curve
-    fpr, tpr, thresholds = roc_curve(y_true=df['is_anomaly_class'],y_score=df['loss'],)
+    fpr, tpr, thresholds = roc_curve(y_true=df['is_anomaly_class'],y_score=df['loss_normalized'],)
     auc_score = auc(fpr, tpr)
     
     # plot ROC CURVE
@@ -99,12 +91,13 @@ def get_metrics(
         plt.ylabel('True Positive Rate')
         plt.legend(loc="lower right")
         plt.savefig(file_name)
+        plt.close()
 
     # 2. F1 scores
-    f1_scores = [f1_score(df['is_anomaly_class'], df['loss'] > threshold) for threshold in thresholds]
+    f1_scores = [f1_score(df['is_anomaly_class'], df['loss_normalized'] > threshold) for threshold in thresholds]
     f1_max = np.max(f1_scores)
 
     # 3. AUC PRC
-    auc_prc = average_precision_score(df['is_anomaly_class'], df['loss'])
+    auc_prc = average_precision_score(df['is_anomaly_class'], df['loss_normalized'])
 
     return auc_score, f1_max, auc_prc
