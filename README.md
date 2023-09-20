@@ -59,12 +59,39 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (x) detect_anomalies -- based on test data (after training) and REC. LOSS function
     (x) return DataFrame holding information about anomaly distribution
 
-(o) create run.py and new_main.py
-    (o) rename main.py -> run.py
-    (o) new main: iterate run.py for different anomaly classes
-    (o) create a DF holding all information (auc_roc, f1, auc_prc) about the different anomaly classes
+(x) create run.py and new_main.py
+    (x) rename main.py -> run.py
+    (x) new main: iterate run.py for different anomaly classes
+    (x) create a DF holding all information (auc_roc, f1, auc_prc) about the different anomaly classes
 
-(o) Reconstruction
+(x) BUGFIXES: 
+    (x) dVAE KDD1999 not working (stops at evaluation.py in for loop)
+    (x) plot_mnist_orig_and_recon error MNIST.Six
+    --> habs behoben in train, siehe GitLens. 
+        Erklarung: in letztem loop sind nur Restinstanzen, dessen Anzahl nicht batch_size ist sondern weniger, im Falle von MNIST.Six = 2.  
+
+        Loesung: Schon behoben, aber plot sind dann halt crap aus mit nur 2 Bildern
+
+(x) Extra
+    (x) move roc_plot to visualazation.py
+    (x) add col to df showing how much % of anomalies are in test data
+    (x) save output df as csv
+
+
+(o) Jupyter Notebook
+    (o) create jupyter notebook on server
+    (o) imports on top
+    (o) Introduction text on top
+        (o) why pVAE is not working, but dVAE is working\
+        (o) what is this code about
+        (o) model architecture + flaws in paper not mentoining the architecture preciscly
+
+    (o) Results text on top
+    (o) Code
+    (o) plot visuals somehow if neccessary
+
+
+(o) optional: Reconstruction
     (o) plot latent space (e. g., images)
     (x) implement reconstructions with generate()
     (o) plot top 5 anomalies (e. g., images)
