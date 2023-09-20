@@ -247,8 +247,8 @@ class DatasetKDD(IDataset):
         df[df_normalized.columns] = df_normalized
 
         # Print min and max values for each numerical columns
-        for col in df_normalized.columns:
-            print(f'\t\t\t{col}: [{df_normalized[col].min()}, {df_normalized[col].max()}]') if self.is_debug else ''
+        #for col in df_normalized.columns:
+        #    print(f'\t\t\t{col}: [{df_normalized[col].min()}, {df_normalized[col].max()}]') if self.is_debug else ''
 
         print('\t\t(✓) normalized numerical columns into [0, 1] range') if self.is_debug else ''
         return df
