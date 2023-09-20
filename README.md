@@ -78,17 +78,17 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (x) save output df as csv
 
 
-(o) Jupyter Notebook
-    (o) create jupyter notebook on server
-    (o) imports on top
-    (o) Introduction text on top
-        (o) why pVAE is not working, but dVAE is working\
-        (o) what is this code about
-        (o) model architecture + flaws in paper not mentoining the architecture preciscly
+(WIP) Jupyter Notebook
+    (x) create jupyter notebook on server
+    (x) imports on top
+    (x) Introduction text on top
+        (x) why pVAE is not working, but dVAE is working\
+        (x) what is this code about
+        (x) model architecture + flaws in paper not mentoining the architecture preciscly
 
-    (o) Results text on top
-    (o) Code
-    (o) plot visuals somehow if neccessary
+    (x) Code
+    (x) plot visuals somehow if neccessary
+    (WIP) Results text on top
 
 
 (o) optional: Reconstruction
