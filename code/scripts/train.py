@@ -63,14 +63,14 @@ def train(
                     % (epoch+1, num_epochs, batch_idx,
                         len(train_loader), loss, forward_dict['kl'], forward_dict['recon_loss']))
 
-                
+
         # RECONSTRUCTION PLOT
         if model_to_train == ModelToTrain.CNN_MNIST:
             print('\t\tPlot reconstruction after epoch: %d' % (epoch + 1))
             batch_reconstructions:torch.Tensor = model.reconstruct(x=X)
             batch_reconstructions  = batch_reconstructions.squeeze(1)
             plot_mnist_orig_and_recon(
-                    batch_size=len(X) //4, 
+                    batch_size=len(X), 
                     x_orig=X, 
                     x_recon=batch_reconstructions,
                     y=y, 
