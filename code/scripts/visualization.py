@@ -25,6 +25,7 @@ def plot_train_pred(log_train_pred:VAELogTrain):
 
     print(f'\t\tPlotting training progress in {file_name}\n')
     plt.savefig(file_name)
+    plt.close()
     return
 
 def plot_mnist_orig_and_recon(
@@ -47,4 +48,5 @@ def plot_mnist_orig_and_recon(
 
     print(f'\t\tPlotting MNIST (original and reconstruction) in {file_name}')
     plt.savefig(file_name)
+    plt.close()
     pass
