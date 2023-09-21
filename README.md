@@ -88,7 +88,8 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
 
     (x) Code
     (x) plot visuals somehow if neccessary
-    (WIP) Results text on top
+    (WIP) Results text on top HIER WEITERMACHEN!!
+    (o) Anomaly Detection machen
 
 
 (o) optional: Reconstruction
