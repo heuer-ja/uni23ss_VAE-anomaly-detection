@@ -1,9 +1,10 @@
 # README DOCUMENTATION
-# Execution
+
+### Execution
 CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
 
 
-# TODOs
+### Milestones
 (x) MNIST (image)
     (x) load data
     (x) model CNN
@@ -74,7 +75,7 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (x) save output df as csv
 
 
-(WIP) Jupyter Notebook
+(x) Jupyter Notebook
     (x) create jupyter notebook on server
     (x) imports on top
     (x) Introduction text on top
@@ -95,7 +96,7 @@ CUDA_VISIBLE_DEVICES=0,1 nohup python main.py > log.txt
     (o) plot top 5 normals (e. g., images)
 
 
-# Code inspiration:
+### Code inspiration:
 - https://github.com/rasbt/stat453-deep-learning-ss21/blob/main/L17/1_VAE_mnist_sigmoid_mse.ipynb
 - https://github.com/Michedev/VAE_anomaly_detection
 
